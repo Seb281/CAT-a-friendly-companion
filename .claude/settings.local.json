@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm run build:*)",
+      "WebFetch(domain:clerk.com)"
+    ]
+  }
+}

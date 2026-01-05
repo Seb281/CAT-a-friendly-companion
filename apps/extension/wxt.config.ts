@@ -1,0 +1,36 @@
+import { defineConfig } from 'wxt'
+import tailwindcss from '@tailwindcss/vite'
+
+// See https://wxt.dev/api/config.html
+export default defineConfig({
+  modules: ['@wxt-dev/module-react'],
+  srcDir: 'src',
+  dev: {
+    server: {
+      port: 3003,
+    },
+  },
+  vite: () => ({
+    plugins: [tailwindcss()],
+  }),
+  manifest: {
+    permissions: ['storage', 'activeTab', 'scripting', 'contextMenus'],
+    host_permissions: ['<all_urls>'],
+    commands: {
+      'show-translation': {
+        suggested_key: {
+          default: 'Ctrl+Shift+T',
+          mac: 'Command+Shift+T',
+        },
+        description: 'Show translation for selected text',
+      },
+    },
+    content_scripts: [
+      {
+        matches: ['<all_urls>'],
+        js: ['content-scripts/content.js'],
+        css: ['content-scripts/content.css'],
+      },
+    ],
+  },
+})

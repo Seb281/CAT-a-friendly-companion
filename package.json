@@ -1,0 +1,21 @@
+{
+  "name": "context-aware-translator",
+  "version": "1.0.0",
+  "description": "Context-aware translation Chrome extension with API backend",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "dev:extension": "turbo dev --filter=context-aware-translator-extension",
+    "dev:api": "turbo dev --filter=api",
+    "build:extension": "turbo build --filter=context-aware-translator-extension",
+    "build:api": "turbo build --filter=api"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.21.0",
+  "devDependencies": {
+    "turbo": "^2.7.2"
+  }
+}
