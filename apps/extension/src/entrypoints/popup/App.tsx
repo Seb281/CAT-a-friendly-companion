@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react"
 import {
   SignInButton,
+  SignOutButton,
   SignedIn,
   SignedOut,
   UserButton,
+  useAuth,
 } from "@clerk/chrome-extension"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -17,14 +19,55 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge.tsx"
-import { Languages, Check } from "lucide-react"
+import { Languages, Check, CheckCircle, LogOut } from "lucide-react"
 import { LANGUAGE_NAMES } from "@/entrypoints/content/helpers/detectLanguage"
 import { Separator } from "@/components/ui/separator"
+
+const EXTENSION_URL = chrome.runtime.getURL(".")
 
 export default function App() {
   const [targetLanguage, setTargetLanguage] = useState("English")
   const [personalContext, setPersonalContext] = useState("")
   const [isSaved, setIsSaved] = useState(false)
+  const [showSignInSuccess, setShowSignInSuccess] = useState(false)
+  const [showSignOutSuccess, setShowSignOutSuccess] = useState(false)
+
+  const { isSignedIn, isLoaded } = useAuth()
+
+  // Check for pending sign-in/sign-out when popup opens
+  useEffect(() => {
+    if (isLoaded) {
+      if (isSignedIn) {
+        chrome.storage.local.get(["signInPending"], (result) => {
+          if (result.signInPending) {
+            setShowSignInSuccess(true)
+            chrome.storage.local.remove("signInPending")
+            setTimeout(() => setShowSignInSuccess(false), 3000)
+          }
+        })
+      } else {
+        chrome.storage.local.get(["signOutPending"], (result) => {
+          if (result.signOutPending) {
+            setShowSignOutSuccess(true)
+            setPersonalContext("")
+            chrome.storage.sync.remove("personalContext")
+            chrome.storage.local.remove("signOutPending")
+            setTimeout(() => setShowSignOutSuccess(false), 3000)
+          }
+        })
+      }
+    }
+  }, [isSignedIn, isLoaded])
+
+  // Set pending flag when sign-in button is clicked
+  const handleSignInClick = () => {
+    chrome.storage.local.set({ signInPending: true })
+  }
+
+  // Set pending flag when sign-out button is clicked
+  const handleSignOutClick = () => {
+    chrome.storage.local.set({ signOutPending: true })
+  }
 
   const languages: Array<{ code: string; name: string }> = []
 
@@ -192,17 +235,41 @@ export default function App() {
           <Separator />
 
           <SignedOut>
-            <SignInButton mode="modal">
-              <Button variant="outline" className="w-full">
-                Sign In
-              </Button>
-            </SignInButton>
+            {showSignOutSuccess && (
+              <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-700">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">Successfully signed out!</span>
+              </div>
+            )}
+            <div onClick={handleSignInClick}>
+              <SignInButton mode="modal">
+                <Button variant="outline" className="w-full">
+                  Sign In
+                </Button>
+              </SignInButton>
+            </div>
           </SignedOut>
 
           <SignedIn>
+            {showSignInSuccess && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md text-green-700">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">Successfully signed in!</span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Signed in</span>
-              <UserButton />
+              <div className="flex items-center gap-2">
+                <UserButton />
+                <span className="text-sm text-muted-foreground">Signed in</span>
+              </div>
+              <div onClick={handleSignOutClick}>
+                <SignOutButton redirectUrl={`${EXTENSION_URL}/popup.html`}>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </Button>
+                </SignOutButton>
+              </div>
             </div>
             <Button
               variant="outline"

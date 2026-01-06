@@ -5,23 +5,30 @@ node_modules/
 dist/
 .output/
 .next/
+out/
 
 # Turbo
 .turbo/
 
-# WXT
+# WXT / Chrome Extension
 .wxt/
+*.crx
+*.zip
+web-ext-artifacts/
 
-# Environment files
+# Environment files (keep .env.default/.env.example as templates)
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+.claude/
 
 # OS
 .DS_Store
@@ -31,12 +38,20 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Testing
 coverage/
+.nyc_output/
 
 # TypeScript
 *.tsbuildinfo
 
+# Database
+*.sqlite
+*.sqlite3
+
 # Misc
 *.local
+*.pem
