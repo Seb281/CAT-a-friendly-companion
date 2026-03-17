@@ -1,6 +1,8 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { generateText } from 'ai'
+import { createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import { extractJSON, promptBuilder } from './helpers.ts'
 import { getAuthenticatedUserEmail, supabase } from '../middleware/supabaseAuth.ts'
@@ -73,6 +75,12 @@ export async function translate(
                 apiKey: settings.customApiKey,
               })
               model = customGoogle('gemini-2.5-flash')
+            } else if (settings.preferredProvider === 'anthropic') {
+              const anthropic = createAnthropic({ apiKey: settings.customApiKey })
+              model = anthropic('claude-sonnet-4-5')
+            } else if (settings.preferredProvider === 'mistral') {
+              const mistral = createMistral({ apiKey: settings.customApiKey })
+              model = mistral('mistral-large-latest')
             }
           }
         }

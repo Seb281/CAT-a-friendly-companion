@@ -184,6 +184,8 @@ export default function SettingsForm() {
               <SelectContent>
                 <SelectItem value="google">Google Gemini (Default)</SelectItem>
                 <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
+                <SelectItem value="anthropic">Anthropic (Claude Sonnet)</SelectItem>
+                <SelectItem value="mistral">Mistral (Large)</SelectItem>
               </SelectContent>
             </Select>
           </div>
