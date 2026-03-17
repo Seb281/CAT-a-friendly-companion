@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { X, Languages, Volume2, Info, GripVertical } from "lucide-react"
+import { X, Languages, Volume2, Info, GripVertical, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -52,6 +52,7 @@ export default function TranslationPopup({
   const [fromCache, setFromCache] = useState(false)
   const [cachedConceptId, setCachedConceptId] = useState<number | null>(null)
   const [retranslated, setRetranslated] = useState(false)
+  const [translationError, setTranslationError] = useState(false)
 
   useEffect(() => {
     // Send a message to the Service Worker to check the status
@@ -106,7 +107,7 @@ export default function TranslationPopup({
             setCachedConceptId(null)
           }
         } else {
-          throw new Error(`Error: ${response?.error || "Translation failed"}`)
+          setTranslationError(true)
         }
         setIsLoading(false)
       }
@@ -250,7 +251,30 @@ export default function TranslationPopup({
         transform: `translate(${position.x}px, ${position.y}px)`,
       }}
     >
-      <Card className="w-[500px] shadow-2xl border-2">
+      <Card className="w-[500px] shadow-2xl border-2 relative">
+        {translationError && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-lg bg-background/97 p-8 text-center backdrop-blur-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="absolute top-3 right-3 h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <AlertCircle className="h-10 w-10 text-muted-foreground" />
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold">Translation unavailable</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                The shared translation service has reached its usage limit.
+                Connect your own AI API key to keep translating without interruption.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dashboard → Settings → AI Provider
+            </p>
+          </div>
+        )}
         <CardHeader className="pb-3">
           <div
             className="flex items-center justify-between cursor-grab active:cursor-grabbing"
