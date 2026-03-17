@@ -111,7 +111,7 @@ export default function TranslationPopup({
         setIsLoading(false)
       }
     )
-  }, [selection, contextBefore, contextAfter, targetLanguage, sourceLanguage])
+  }, [selection, contextBefore, contextAfter])
 
   function handleMouseDown(e: React.MouseEvent) {
     setIsDragging(true)
