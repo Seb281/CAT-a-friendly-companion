@@ -38,13 +38,13 @@ export function promptBuilder(
   let promptAdjustment: Array<string>
 
   const instructionFixedExpression: string =
-    '"fixedExpression": Value must be "no" or the fixed expression/concept name (e.g., "<fixed idiom/concept>") if the marked word is part of a larger fixed expression or recognized category used in this context.'
+    '"fixedExpression": "no" or the idiom/expression this word belongs to in context.'
   const commonUssage: string =
-    '"commonUssage": Give short context of how the word is commonly used. If the contextual meaning differs from the common ussage, explain the difference.'
+    '"commonUssage": Typical usage; note if context differs from common meaning.'
   const instructionGrammar: string =
-    '"grammarRules": Add brief grammar rules, limited to what is relevant for this item (e.g., agreement, part of speech behavior, irregularities).'
+    '"grammarRules": Relevant grammar (part of speech, agreement, irregularities).'
   const instructionCommonness: string =
-    '"commonness": Indicate how common this selection is in everyday speech/texts. Up to 5 words.'
+    '"commonness": Frequency in everyday speech (≤5 words).'
 
   if (selectionLength === 1) {
     if (textLengh === selectionLength) {
@@ -92,24 +92,24 @@ export function promptBuilder(
     throw new Error('No selection identified')
   }
 
-  const promptContents: string = `For the text I provide, ${promptAdjustment[0]}:
-        
-        Translate to ${targetLanguage ?? 'English'} and provide the output as a single JSON object with the given keys. Respond in ${targetLanguage}:
-        
-        "language": ${unknownSourceLang ? sourceLanguage : 'State the language that the provided text is in.'}
-        ${promptAdjustment[1]}
-        "contextualTranslation": Give the best English translation of the marked ${promptAdjustment[2]} as used in this specific context.
-        "phoneticApproximation": Give an English-sound phonetic approximation of the ${promptAdjustment[2]}.
-        ${promptAdjustment[3]}
-        ${promptAdjustment[4]}
-        ${promptAdjustment[5]}
+  const lang = unknownSourceLang ? 'Detect and state the source language.' : sourceLanguage
+  const optField1 = promptAdjustment[1] ? `\n${promptAdjustment[1]}` : ''
+  const optField3 = promptAdjustment[3] ? `\n${promptAdjustment[3]}` : ''
+  const optField4 = promptAdjustment[4] ? `\n${promptAdjustment[4]}` : ''
+  const optField5 = promptAdjustment[5] ? `\n${promptAdjustment[5]}` : ''
+  const personalCtx = personalContext
+    ? `\nIf it makes sense, take into account this context about me: ${personalContext}.`
+    : ''
 
-        ${personalContext && `If it make sense, take into account this context about me: ${personalContext}.`}
+  const promptContents = `For the text I provide, ${promptAdjustment[0]}:
 
-        Don't forget that I want the response in ${targetLanguage}.
+Translate to ${targetLanguage ?? 'English'} and return a JSON object with these keys:
 
-        Text: ${text}
-        `
+"language": ${lang}${optField1}
+"contextualTranslation": Best ${targetLanguage} translation of the marked ${promptAdjustment[2]} in this context.
+"phoneticApproximation": English-sound phonetic approximation.${optField3}${optField4}${optField5}${personalCtx}
+
+Text: ${text}`
 
   return promptContents
 }
