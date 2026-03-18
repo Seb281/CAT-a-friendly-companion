@@ -19,7 +19,7 @@ export async function startServer() {
   try {
     // Register CORS
     await app.register(cors, {
-      origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
+      origin: process.env.ALLOWED_ORIGIN,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
