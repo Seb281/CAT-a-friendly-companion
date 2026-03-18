@@ -23,7 +23,7 @@ export default defineConfig({
       48: 'icon/icon-48.png',
       128: 'icon/icon-128.png',
     },
-    permissions: ['storage', 'activeTab', 'scripting', 'contextMenus', 'tabs'],
+    permissions: ['storage', 'tabs'],
     host_permissions: ['<all_urls>'],
     commands: {
       'show-translation': {

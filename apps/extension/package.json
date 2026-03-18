@@ -2,7 +2,7 @@
   "name": "context-aware-translator-extension",
   "description": "Chrome extension for context-aware text translation",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",

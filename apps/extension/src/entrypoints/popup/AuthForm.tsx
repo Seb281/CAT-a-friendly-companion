@@ -12,11 +12,11 @@ export default function AuthForm({ supabase }: { supabase: SupabaseClient }) {
   const [loading, setLoading] = useState(false)
   const [confirmationSent, setConfirmationSent] = useState(false)
 
-  const handleGoogleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: import.meta.env.VITE_DASHBOARD_URL },
-    })
+  const [awaitingGoogleAuth, setAwaitingGoogleAuth] = useState(false)
+
+  const handleGoogleSignIn = () => {
+    chrome.tabs.create({ url: `${import.meta.env.VITE_DASHBOARD_URL}/sign-in` })
+    setAwaitingGoogleAuth(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +43,20 @@ export default function AuthForm({ supabase }: { supabase: SupabaseClient }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (awaitingGoogleAuth) {
+    return (
+      <div className="text-center space-y-2">
+        <p className="text-sm font-medium">Waiting for Google sign-in...</p>
+        <p className="text-xs text-muted-foreground">
+          Complete sign-in in the opened tab. This will update automatically.
+        </p>
+        <Button variant="link" size="sm" onClick={() => setAwaitingGoogleAuth(false)}>
+          Cancel
+        </Button>
+      </div>
+    )
   }
 
   if (confirmationSent) {
