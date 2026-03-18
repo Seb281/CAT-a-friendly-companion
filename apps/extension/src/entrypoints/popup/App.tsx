@@ -46,26 +46,7 @@ export default function App() {
       }
     })
 
-    const storageListener = (
-      changes: Record<string, chrome.storage.StorageChange>,
-      area: string,
-    ) => {
-      if (area !== 'local') return
-      const hasAuthChange = Object.keys(changes).some((key) => key.startsWith('sb-'))
-      if (!hasAuthChange) return
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session)
-        if (session) fetchSettingsFromApi()
-        else setPersonalContext('')
-      })
-    }
-
-    chrome.storage.onChanged.addListener(storageListener)
-
-    return () => {
-      subscription.unsubscribe()
-      chrome.storage.onChanged.removeListener(storageListener)
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
   // Fetch user settings from API

@@ -573,7 +573,7 @@ export default function TranslationPopup({
                             </div>
                             <Badge
                               variant='outline'
-                              className='text-xs max-w-full ml-3'
+                              className='text-xs max-w-full ml-5'
                             >
                               {translation.commonness}
                             </Badge>
