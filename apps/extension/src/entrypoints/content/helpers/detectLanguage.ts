@@ -30,8 +30,8 @@ export default function detectPageLanguage() {
         return getLanguageName(detectedCode)
       }
     }
-  } catch (error) {
-    console.error("Error detecting language with franc:", error)
+  } catch {
+    // ignore
   }
 
   return "UNKNOWN"

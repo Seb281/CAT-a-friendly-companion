@@ -201,15 +201,12 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
       })
       .then(({ data: { session }, error }) => {
         if (error) {
-          console.error('[background] DASHBOARD_SESSION: setSession failed:', error.message)
           sendResponse({ success: false, error: error.message })
         } else {
-          console.log('[background] DASHBOARD_SESSION: session set for', session?.user?.email)
           sendResponse({ success: true })
         }
       })
       .catch((error: Error) => {
-        console.error('[background] DASHBOARD_SESSION: unexpected error:', error.message)
         sendResponse({ success: false, error: error.message })
       })
       .finally(() => {

@@ -3,9 +3,6 @@ import { createClient } from "@supabase/supabase-js"
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn("Missing Supabase configuration (VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY)")
-}
 
 /**
  * Storage adapter using chrome.storage.local so the Supabase session is
@@ -38,8 +35,7 @@ export async function getSupabaseToken(): Promise<string | null> {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     return session?.access_token ?? null
-  } catch (error) {
-    console.error("Failed to get Supabase token:", error)
+  } catch {
     return null
   }
 }
@@ -48,8 +44,7 @@ export async function isAuthenticated(): Promise<boolean> {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     return !!session
-  } catch (error) {
-    console.error("Failed to check auth status:", error)
+  } catch {
     return false
   }
 }

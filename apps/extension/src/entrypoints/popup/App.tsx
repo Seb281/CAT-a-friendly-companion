@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge.tsx'
-import { Languages, Check, CheckCircle, LogOut, User } from 'lucide-react'
+import { Languages, Check, LogOut, User } from 'lucide-react'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { Separator } from '@/components/ui/separator'
 import type { Session } from '@supabase/supabase-js'
@@ -40,8 +40,7 @@ export default function App() {
     })
 
     // React to session written by background (e.g. auth-bridge dashboard sync)
-    const handleStorageChange = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-      if (area !== 'local') return
+    const handleStorageChange = (changes: Record<string, chrome.storage.StorageChange>) => {
       const hasAuthChange = Object.keys(changes).some(k => k.includes('auth'))
       if (!hasAuthChange) return
       supabase.auth.getSession().then(({ data: { session } }) => {

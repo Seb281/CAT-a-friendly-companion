@@ -9,12 +9,11 @@ const highlight: {
   selection(range: Range): void {
     const selectedSpan: HTMLSpanElement = document.createElement("span")
     selectedSpan.className = "bg-blue-300 transition-colors"
-    selectedSpan.dataset.translatorHighlight = "true" // keep or remove? ATM it's not used (nov13)
+    selectedSpan.dataset.translatorHighlight = "true"
     try {
       range.surroundContents(selectedSpan)
       this.current.push(selectedSpan)
     } catch (error) {
-      console.error("Could not highlight selection:", error)
     }
   },
 

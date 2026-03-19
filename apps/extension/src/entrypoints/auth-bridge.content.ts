@@ -22,11 +22,8 @@ export default defineContentScript({
   runAt: "document_idle",
   main() {
     if (!PROJECT_REF) {
-      console.warn("[auth-bridge] Could not extract Supabase project ref from VITE_SUPABASE_URL")
       return
     }
-
-    console.log('[auth-bridge] running — PROJECT_REF:', PROJECT_REF, '| COOKIE_NAME:', COOKIE_NAME)
 
     const DASHBOARD_ORIGIN = new URL(DASHBOARD_URL).origin
 
@@ -128,14 +125,12 @@ export default defineContentScript({
       if (event.origin !== DASHBOARD_ORIGIN) return
 
       if (event.data?.type === 'SUPABASE_SESSION') {
-        console.log('[auth-bridge] received SUPABASE_SESSION from dashboard')
         chrome.runtime.sendMessage({
           type: 'DASHBOARD_SESSION',
           access_token: event.data.access_token,
           refresh_token: event.data.refresh_token,
         })
       } else if (event.data?.type === 'SUPABASE_SIGNOUT') {
-        console.log('[auth-bridge] received SUPABASE_SIGNOUT from dashboard')
         chrome.runtime.sendMessage({ type: 'DASHBOARD_SIGNOUT' })
       }
     })
@@ -156,10 +151,7 @@ export default defineContentScript({
       const extensionSession = extensionResponse?.session || null
       const dashboardCookies = readTokensFromCookies() // JS-visible cookies only
 
-      console.log('[auth-bridge] initialSync — extensionSession:', extensionSession ? 'FOUND' : 'none', '| dashboardCookies (JS-visible):', dashboardCookies ? 'FOUND' : 'none')
-
       if (extensionSession && !dashboardCookies) {
-        console.log('[auth-bridge] → writing extension session to dashboard cookies')
         writeSessionToCookies(JSON.stringify(extensionSession))
         location.reload()
         return
@@ -167,7 +159,6 @@ export default defineContentScript({
 
       // Ping dashboard to send current session (handles case where onAuthStateChange
       // already fired before this content script initialized)
-      console.log('[auth-bridge] → sending EXTENSION_BRIDGE_READY ping')
       window.postMessage({ type: 'EXTENSION_BRIDGE_READY' }, DASHBOARD_ORIGIN)
     }
 

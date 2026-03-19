@@ -34,7 +34,6 @@ export default async function handleTranslation(
       return response.json()
     })
     .catch((error) => {
-      console.error("Translation error:", error)
       throw new Error(
         error instanceof Error ? error.message : "Failed to translate text"
       )

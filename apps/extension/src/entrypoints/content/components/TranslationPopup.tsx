@@ -36,7 +36,7 @@ interface TranslationResponse {
   fixedExpression?: string
   contextualTranslation: string
   phoneticApproximation: string
-  commonUssage?: string
+  commonUsage?: string
   grammarRules?: string
   commonness?: string
 }
@@ -79,14 +79,7 @@ export default function TranslationPopup({
     chrome.runtime.sendMessage(
       { type: 'CHECK_LOGIN_STATUS' },
       (response: { isLoggedIn: boolean }) => {
-        // if (chrome.runtime.lastError) {
-        //   // Handle cases where the extension might be reloaded or context is lost
-        //   console.error(chrome.runtime.lastError.message)
-        //   setStatus("logged_out")
-        //   return
-        // }
-
-        if (response && response.isLoggedIn) {
+          if (response && response.isLoggedIn) {
           setStatus('logged_in')
         } else {
           setStatus('logged_out')
@@ -519,8 +512,8 @@ export default function TranslationPopup({
 
                 {(translation.fixedExpression &&
                   translation.fixedExpression !== 'no') ||
-                (translation.commonUssage &&
-                  translation.commonUssage !== 'no') ||
+                (translation.commonUsage &&
+                  translation.commonUsage !== 'no') ||
                 translation.grammarRules ||
                 translation.commonness ? (
                   <div className='space-y-3'>
@@ -546,11 +539,11 @@ export default function TranslationPopup({
                             />
                           )}
 
-                        {translation.commonUssage &&
-                          translation.commonUssage !== 'no' && (
+                        {translation.commonUsage &&
+                          translation.commonUsage !== 'no' && (
                             <InfoItem
                               label='Usage Note'
-                              value={translation.commonUssage}
+                              value={translation.commonUsage}
                               icon={<Info className='h-4 w-4 text-amber-500' />}
                             />
                           )}

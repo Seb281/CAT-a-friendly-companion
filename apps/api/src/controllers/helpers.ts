@@ -39,8 +39,8 @@ export function promptBuilder(
 
   const instructionFixedExpression: string =
     '"fixedExpression": "no" or the idiom/expression this word belongs to in context.'
-  const commonUssage: string =
-    '"commonUssage": Typical usage; note if context differs from common meaning.'
+  const commonUsage: string =
+    '"commonUsage": Typical usage; note if context differs from common meaning.'
   const instructionGrammar: string =
     '"grammarRules": Relevant grammar (part of speech, agreement, irregularities).'
   const instructionCommonness: string =
@@ -61,7 +61,7 @@ export function promptBuilder(
         'do the following for the word marked with []',
         instructionFixedExpression,
         'word or expression',
-        commonUssage,
+        commonUsage,
         instructionGrammar,
         instructionCommonness,
       ]
@@ -81,7 +81,7 @@ export function promptBuilder(
         'do the following for the snippet marked with []',
         instructionFixedExpression,
         'phrase',
-        commonUssage,
+        commonUsage,
         instructionGrammar,
         instructionCommonness,
       ]
