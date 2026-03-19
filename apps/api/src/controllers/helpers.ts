@@ -93,7 +93,7 @@ export function promptBuilder(
   }
 
   const lang = unknownSourceLang
-    ? 'Detect and state the source language.'
+    ? 'Detect and state the language of the given Text.'
     : sourceLanguage
   const optField1 = promptAdjustment[1] ? `\n${promptAdjustment[1]}` : ''
   const optField3 = promptAdjustment[3] ? `\n${promptAdjustment[3]}` : ''
