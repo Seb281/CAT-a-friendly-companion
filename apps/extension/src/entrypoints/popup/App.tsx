@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/entrypoints/background/helpers/supabaseAuth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge.tsx'
@@ -46,7 +39,23 @@ export default function App() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    // React to session written by background (e.g. auth-bridge dashboard sync)
+    const handleStorageChange = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area !== 'local') return
+      const hasAuthChange = Object.keys(changes).some(k => k.includes('auth'))
+      if (!hasAuthChange) return
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session)
+        if (session) fetchSettingsFromApi()
+        else setPersonalContext('')
+      })
+    }
+    chrome.storage.local.onChanged.addListener(handleStorageChange)
+
+    return () => {
+      subscription.unsubscribe()
+      chrome.storage.local.onChanged.removeListener(handleStorageChange)
+    }
   }, [])
 
   // Fetch user settings from API
@@ -153,22 +162,18 @@ export default function App() {
             >
               Target Language
             </Label>
-            <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-              <SelectTrigger id='language'>
-                <SelectValue placeholder='Select a language' />
-              </SelectTrigger>
-              <SelectContent className='bg-popover'>
-                {languages.map((lang) => (
-                  <SelectItem
-                    key={lang.code}
-                    value={lang.name}
-                    className='text-popover-foreground'
-                  >
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              id='language'
+              value={targetLanguage}
+              onChange={(e) => setTargetLanguage(e.target.value)}
+              className='h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50'
+            >
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.name}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className='space-y-2'>
