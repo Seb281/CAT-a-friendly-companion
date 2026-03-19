@@ -109,7 +109,7 @@ export default function TranslationPopup({
         cachedConceptId?: number
         error?: string
       }): void => {
-        if (response.success) {
+        if (response?.success) {
           setTranslation(response.translateObject)
           if (response.fromCache) {
             setFromCache(true)
@@ -147,9 +147,9 @@ export default function TranslationPopup({
         },
       },
       (response) => {
-        if (response.alreadySaved) {
+        if (response?.alreadySaved) {
           setSaveState('alreadySaved')
-        } else if (response.success) {
+        } else if (response?.success) {
           setSaveState('saved')
         }
       },
@@ -171,7 +171,7 @@ export default function TranslationPopup({
         translateObject: TranslationResponse
         error?: string
       }): void => {
-        if (response.success) {
+        if (response?.success) {
           setTranslation(response.translateObject)
           setRetranslated(true)
         }

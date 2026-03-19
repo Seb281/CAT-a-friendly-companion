@@ -10,6 +10,7 @@
  * - Extension -> Dashboard: receives full session from background, writes cookies
  */
 
+import type { Session } from '@supabase/supabase-js'
 import { initSentry, scope } from "@/lib/sentry"
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
@@ -148,7 +149,7 @@ export default defineContentScript({
      * - Send EXTENSION_BRIDGE_READY ping so ExtensionBridge re-sends session if it already fired
      */
     async function initialSync(): Promise<void> {
-      const extensionResponse = await new Promise<{ session: any } | null>((resolve) => {
+      const extensionResponse = await new Promise<{ session: Session | null } | null>((resolve) => {
         chrome.runtime.sendMessage({ type: 'GET_EXTENSION_SESSION' }, (response) => {
           if (chrome.runtime.lastError) { resolve(null); return }
           resolve(response || null)

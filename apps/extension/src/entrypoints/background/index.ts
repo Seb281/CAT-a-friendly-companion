@@ -36,7 +36,7 @@ type TranslateMessage = {
 
 type TranslateResponse = {
   success: boolean
-  translateObject?: object // improve typing by adding keys
+  translateObject?: object
   fromCache?: boolean
   cachedConceptId?: number
   error?: string
