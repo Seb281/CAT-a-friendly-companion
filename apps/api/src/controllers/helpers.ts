@@ -1,7 +1,7 @@
 export function extractJSON(apiResponse: string): object {
   // Remove markdown code blocks if present
   const cleanedResponse = apiResponse.replace(/```json\n?|\n?```/g, '').trim()
-  
+
   const match = cleanedResponse.match(/\{[\s\S]*\}/)
   if (match) {
     try {
@@ -25,7 +25,7 @@ export function promptBuilder(
   text: string,
   targetLanguage: string,
   sourceLanguage: string,
-  personalContext: string
+  personalContext: string,
 ): string {
   let unknownSourceLang: boolean = false
   if (!sourceLanguage || sourceLanguage === 'UNKNOWN') {
@@ -44,7 +44,7 @@ export function promptBuilder(
   const instructionGrammar: string =
     '"grammarRules": Relevant grammar (part of speech, agreement, irregularities).'
   const instructionCommonness: string =
-    '"commonness": Frequency in everyday speech (≤5 words).'
+    '"commonness": Frequency in everyday speech (RULE: ≤5 words).'
 
   if (selectionLength === 1) {
     if (textLengh === selectionLength) {
@@ -92,7 +92,9 @@ export function promptBuilder(
     throw new Error('No selection identified')
   }
 
-  const lang = unknownSourceLang ? 'Detect and state the source language.' : sourceLanguage
+  const lang = unknownSourceLang
+    ? 'Detect and state the source language.'
+    : sourceLanguage
   const optField1 = promptAdjustment[1] ? `\n${promptAdjustment[1]}` : ''
   const optField3 = promptAdjustment[3] ? `\n${promptAdjustment[3]}` : ''
   const optField4 = promptAdjustment[4] ? `\n${promptAdjustment[4]}` : ''
