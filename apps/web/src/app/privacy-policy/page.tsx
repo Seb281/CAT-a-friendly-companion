@@ -168,13 +168,21 @@ export default function PrivacyPolicyPage() {
                 token, language preferences, and personal context string locally and via Chrome sync.
               </li>
               <li>
-                <span className="font-medium text-foreground">tabs</span> — used to detect the URL of the active tab so
-                the extension can provide page-level context. Tab URLs are not stored or transmitted.
+                <span className="font-medium text-foreground">tabs</span> — used to send messages to content scripts in
+                active tabs and detect whether the content script is already running. Tab URLs are not stored or
+                transmitted.
               </li>
               <li>
-                <span className="font-medium text-foreground">&lt;all_urls&gt;</span> — required to inject the content
-                script that detects text selections on any webpage you visit. The content script only activates when you
-                highlight text; it does not read or record page content passively.
+                <span className="font-medium text-foreground">activeTab</span> — grants temporary access to the
+                currently active tab only when you invoke the extension (via the selection tooltip or the keyboard
+                shortcut <span className="font-mono text-sm">Ctrl+Shift+T</span> /{" "}
+                <span className="font-mono text-sm">Command+Shift+T</span>). The extension has no passive access to
+                background tabs.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">scripting</span> — injects the translation UI into the
+                active tab on demand. The script only runs when you explicitly trigger a translation; it is not present
+                on pages passively.
               </li>
             </ul>
           </section>
