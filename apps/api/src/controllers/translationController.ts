@@ -51,7 +51,7 @@ export async function translate(
     )
 
     // Determine Provider and API Key
-    let model: any = google('gemini-2.5-flash') // Default system model
+    let model: any = google('gemini-3.1-flash-lite-preview') // Default system model
 
     // Try to identify user and check for custom settings
     try {

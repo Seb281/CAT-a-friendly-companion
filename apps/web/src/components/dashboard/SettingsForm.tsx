@@ -215,7 +215,7 @@ export default function SettingsForm() {
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <p>
                 Your API key is encrypted and stored securely. We only use it to generate your translations.
-                If you don't provide a key, we'll use our default system (Google Gemini 2.0 Flash).
+                If you don't provide a key, we'll use our default system (Google Gemini 3.1 Flash Lite).
               </p>
             </div>
           </div>
