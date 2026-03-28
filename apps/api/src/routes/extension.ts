@@ -9,6 +9,7 @@ import {
 import conceptsData from '../data/conceptsData.ts'
 import tagsData from '../data/tagsData.ts'
 import { usersData, userContextData } from '../data/usersData.ts'
+import statsData from '../data/statsData.ts'
 
 type SaveConceptBody = {
   concept: string
@@ -113,6 +114,8 @@ export async function extensionRoutes(
       const saved = savedConcept[0]
       if (saved) {
         enrichConceptInBackground(saved.id, concept, sourceLanguage, targetLanguage, email)
+        // Track daily activity (non-blocking)
+        statsData.updateDailyActivity(user.id, 'conceptsAdded').catch(console.error)
       }
 
       return reply.code(201).send({

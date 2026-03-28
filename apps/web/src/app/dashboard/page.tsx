@@ -23,6 +23,11 @@ export default function DashboardHome() {
     dueNow: number;
     avgAccuracy: number;
   } | null>(null);
+  const [overview, setOverview] = useState<{
+    totalConcepts: number;
+    currentStreak: number;
+    longestStreak: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,9 +43,10 @@ export default function DashboardHome() {
 
         const headers = { Authorization: `Bearer ${session.access_token}` };
 
-        const [dueRes, statsRes] = await Promise.all([
+        const [dueRes, statsRes, overviewRes] = await Promise.all([
           fetch(`${API_URL}/review/due?countOnly=true`, { headers }),
           fetch(`${API_URL}/review/stats`, { headers }),
+          fetch(`${API_URL}/stats/overview`, { headers }),
         ]);
 
         if (dueRes.ok) {
@@ -50,6 +56,10 @@ export default function DashboardHome() {
         if (statsRes.ok) {
           const data = await statsRes.json();
           setStats(data);
+        }
+        if (overviewRes.ok) {
+          const data = await overviewRes.json();
+          setOverview(data);
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -132,7 +142,9 @@ export default function DashboardHome() {
                 <p className="text-xs text-muted-foreground">Due Now</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">--</p>
+                <p className="text-2xl font-bold">
+                  {loading ? "--" : (overview?.currentStreak ?? 0)}
+                </p>
                 <p className="text-xs text-muted-foreground">Streak</p>
               </div>
             </div>

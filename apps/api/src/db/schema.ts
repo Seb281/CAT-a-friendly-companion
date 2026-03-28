@@ -9,6 +9,9 @@ export const usersTable = pgTable('users', {
   context: text('context'),
   customApiKey: text('custom_api_key'),
   preferredProvider: text('preferred_provider').default('google'),
+  currentStreak: integer('current_streak').notNull().default(0),
+  longestStreak: integer('longest_streak').notNull().default(0),
+  lastActiveDate: text('last_active_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -82,6 +85,21 @@ export const reviewScheduleTable = pgTable('review_schedule', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+export const dailyActivityTable = pgTable(
+  'daily_activity',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    date: text('date').notNull(), // YYYY-MM-DD
+    conceptsAdded: integer('concepts_added').notNull().default(0),
+    reviewsCompleted: integer('reviews_completed').notNull().default(0),
+    correctReviews: integer('correct_reviews').notNull().default(0),
+  },
+  (t) => [unique().on(t.userId, t.date)]
+)
+
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert
 
@@ -92,3 +110,5 @@ export type Tag = typeof tagsTable.$inferSelect
 export type NewTag = typeof tagsTable.$inferInsert
 
 export type ReviewSchedule = typeof reviewScheduleTable.$inferSelect
+
+export type DailyActivity = typeof dailyActivityTable.$inferSelect

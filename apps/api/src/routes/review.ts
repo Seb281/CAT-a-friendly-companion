@@ -8,6 +8,7 @@ import reviewData from '../data/reviewData.ts'
 import conceptsData from '../data/conceptsData.ts'
 import { sm2, QUALITY_MAP } from '../utils/sm2.ts'
 import type { QualityLabel } from '../utils/sm2.ts'
+import statsData from '../data/statsData.ts'
 
 type ReviewResultBody = {
   quality: number | QualityLabel
@@ -113,6 +114,12 @@ export async function reviewRoutes(
       await conceptsData.updateConcept(conceptId, user.id, {
         state: result.conceptState,
       })
+
+      // Track daily activity (non-blocking)
+      statsData.updateDailyActivity(user.id, 'reviewsCompleted').catch(console.error)
+      if (quality >= 3) {
+        statsData.updateDailyActivity(user.id, 'correctReviews').catch(console.error)
+      }
 
       return reply.send({
         message: 'Review recorded',
