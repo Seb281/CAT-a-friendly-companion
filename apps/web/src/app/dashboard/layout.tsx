@@ -1,9 +1,8 @@
-import { LogOut, Languages, User } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/app/actions";
 import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/app/actions";
 import ExtensionBridge from "@/components/ExtensionBridge";
+import Sidebar from "@/components/dashboard/Sidebar";
+import MobileNav from "@/components/dashboard/MobileNav";
 
 export default async function DashboardLayout({
   children,
@@ -11,37 +10,20 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 font-semibold"
-          >
-            <Languages className="size-5 text-primary" />
-            <span>Context-Aware Translator</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
-              </div>
-              <span className="hidden sm:inline">{user?.email}</span>
-            </div>
-            <form action={signOut}>
-              <Button variant="ghost" size="sm" type="submit">
-                <LogOut className="size-4 mr-2" />
-                Sign Out
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background flex">
+      <Sidebar userEmail={user?.email} signOutAction={signOut} />
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
+          {children}
+        </main>
+      </div>
+      <MobileNav signOutAction={signOut} />
       <ExtensionBridge />
-      <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
-import { translate } from '../controllers/translationController.ts'
+import { translate, enrichConceptInBackground } from '../controllers/translationController.ts'
 import {
   requireAuth,
   getAuthenticatedUserEmail,
@@ -17,6 +17,16 @@ type SaveConceptBody = {
 
 type UpdateConceptBody = {
   translation: string
+}
+
+type ConceptsQuerystring = {
+  search?: string
+  language?: string
+  state?: string
+  sortBy?: 'date' | 'alpha'
+  sortOrder?: 'asc' | 'desc'
+  page?: string
+  limit?: string
 }
 
 type LookupQuerystring = {
@@ -93,9 +103,15 @@ export async function extensionRoutes(
         targetLanguage,
       })
 
+      // Enrich with rich translation data in background (non-blocking)
+      const saved = savedConcept[0]
+      if (saved) {
+        enrichConceptInBackground(saved.id, concept, sourceLanguage, targetLanguage, email)
+      }
+
       return reply.code(201).send({
         message: 'Concept saved',
-        concept: savedConcept[0],
+        concept: saved,
       })
     }
   )
@@ -129,21 +145,62 @@ export async function extensionRoutes(
     }
   )
 
-  // Protected endpoint - get saved concepts
+  // Protected endpoint - get distinct language pairs for filter dropdown
   fastify.get(
-    '/saved-concepts',
+    '/saved-concepts/languages',
     { preHandler: [requireAuth] },
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.send({ languages: [] })
+      }
+
+      const languages = await conceptsData.getLanguagePairs(user.id)
+      return reply.send({ languages })
+    }
+  )
+
+  // Protected endpoint - get saved concepts with search/filter/sort
+  fastify.get<{ Querystring: ConceptsQuerystring }>(
+    '/saved-concepts',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest<{ Querystring: ConceptsQuerystring }>, reply: FastifyReply) => {
       const email = await getAuthenticatedUserEmail(request)
       if (!email) {
         return reply.code(401).send({ error: 'Could not get user email' })
       }
 
-      const concepts = await conceptsData.retrieveUserConcepts(email)
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.send({ message: 'Concepts retrieved', concepts: [], total: 0 })
+      }
+
+      const { search, language, state, sortBy, sortOrder, page, limit } = request.query
+
+      const result = await conceptsData.searchConcepts(user.id, {
+        search,
+        language,
+        state,
+        sortBy,
+        sortOrder,
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+      })
 
       return reply.send({
         message: 'Concepts retrieved',
-        concepts,
+        concepts: result.concepts,
+        total: result.total,
       })
     }
   )

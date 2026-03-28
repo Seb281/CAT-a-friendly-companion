@@ -21,6 +21,11 @@ export const conceptsTable = pgTable('concepts', {
   targetLanguage: text('target_language').notNull(),
   concept: text('concept').notNull(),
   translation: text('translation').notNull(),
+  phoneticApproximation: text('phonetic_approximation'),
+  commonUsage: text('common_usage'),
+  grammarRules: text('grammar_rules'),
+  commonness: text('commonness'),
+  fixedExpression: text('fixed_expression'),
   state: text('state').notNull().default('new'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')

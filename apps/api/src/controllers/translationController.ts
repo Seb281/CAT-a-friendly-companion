@@ -7,6 +7,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { extractJSON, promptBuilder } from './helpers.ts'
 import { getAuthenticatedUserEmail, supabase } from '../middleware/supabaseAuth.ts'
 import { userContextData } from '../data/usersData.ts'
+import conceptsData from '../data/conceptsData.ts'
 import 'dotenv/config'
 
 const systemGeminiKey = process.env.GEMINI_API_KEY
@@ -18,6 +19,65 @@ if (!systemGeminiKey) {
 const google = createGoogleGenerativeAI({
   apiKey: systemGeminiKey,
 })
+
+export function resolveModel(settings: { customApiKey: string | null; preferredProvider: string | null }) {
+  let model: any = google('gemini-3.1-flash-lite-preview')
+
+  if (settings.customApiKey && settings.preferredProvider) {
+    if (settings.preferredProvider === 'openai') {
+      const openai = createOpenAI({ apiKey: settings.customApiKey })
+      model = openai('gpt-4o')
+    } else if (settings.preferredProvider === 'google') {
+      const customGoogle = createGoogleGenerativeAI({ apiKey: settings.customApiKey })
+      model = customGoogle('gemini-2.5-flash')
+    } else if (settings.preferredProvider === 'anthropic') {
+      const anthropic = createAnthropic({ apiKey: settings.customApiKey })
+      model = anthropic('claude-sonnet-4-5')
+    } else if (settings.preferredProvider === 'mistral') {
+      const mistral = createMistral({ apiKey: settings.customApiKey })
+      model = mistral('mistral-large-latest')
+    }
+  }
+
+  return model
+}
+
+export async function enrichConceptInBackground(
+  conceptId: number,
+  concept: string,
+  sourceLanguage: string,
+  targetLanguage: string,
+  userEmail?: string
+) {
+  try {
+    let model: any = google('gemini-3.1-flash-lite-preview')
+
+    if (userEmail) {
+      const settings = await userContextData.retrieveUserContext(userEmail)
+      model = resolveModel(settings)
+    }
+
+    const prompt = promptBuilder(
+      `[${concept}]`,
+      targetLanguage,
+      sourceLanguage,
+      ''
+    )
+
+    const { text } = await generateText({ model, prompt, temperature: 0 })
+    const result = extractJSON(text) as Record<string, string>
+
+    await conceptsData.enrichConcept(conceptId, {
+      phoneticApproximation: result.phoneticApproximation ?? null,
+      commonUsage: result.commonUsage ?? null,
+      grammarRules: result.grammarRules ?? null,
+      commonness: result.commonness ?? null,
+      fixedExpression: result.fixedExpression === 'no' ? null : result.fixedExpression ?? null,
+    })
+  } catch (error) {
+    console.error(`Failed to enrich concept ${conceptId}:`, error)
+  }
+}
 
 type TranslationRequest = {
   text: string
@@ -55,34 +115,14 @@ export async function translate(
 
     // Try to identify user and check for custom settings
     try {
-      // Check if there's an auth header even if this is a "public" endpoint
       const authHeader = request.headers.authorization
       if (authHeader) {
         const token = authHeader.replace('Bearer ', '')
         const { data: { user } } = await supabase.auth.getUser(token)
-        
+
         if (user?.email) {
           const settings = await userContextData.retrieveUserContext(user.email)
-          
-          if (settings.customApiKey && settings.preferredProvider) {
-            if (settings.preferredProvider === 'openai') {
-              const openai = createOpenAI({
-                apiKey: settings.customApiKey,
-              })
-              model = openai('gpt-4o')
-            } else if (settings.preferredProvider === 'google') {
-              const customGoogle = createGoogleGenerativeAI({
-                apiKey: settings.customApiKey,
-              })
-              model = customGoogle('gemini-2.5-flash')
-            } else if (settings.preferredProvider === 'anthropic') {
-              const anthropic = createAnthropic({ apiKey: settings.customApiKey })
-              model = anthropic('claude-sonnet-4-5')
-            } else if (settings.preferredProvider === 'mistral') {
-              const mistral = createMistral({ apiKey: settings.customApiKey })
-              model = mistral('mistral-large-latest')
-            }
-          }
+          model = resolveModel(settings)
         }
       }
     } catch (authError) {
