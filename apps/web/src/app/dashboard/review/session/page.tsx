@@ -40,7 +40,7 @@ export default function ReviewSessionPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] gap-3">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
         <p className="text-muted-foreground">Loading questions...</p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function ReviewSessionPage() {
         </p>
         <a
           href="/dashboard/review"
-          className="text-primary underline text-sm"
+          className="text-muted-foreground underline text-sm hover:text-foreground"
         >
           Back to Review
         </a>

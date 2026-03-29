@@ -12,10 +12,10 @@ import {
 import { ChevronDown } from "lucide-react";
 
 const MASTERY_LEVELS = [
-  { value: "new", label: "New", color: "bg-gray-100 text-gray-700 hover:bg-gray-200" },
-  { value: "learning", label: "Learning", color: "bg-blue-100 text-blue-700 hover:bg-blue-200" },
-  { value: "familiar", label: "Familiar", color: "bg-amber-100 text-amber-700 hover:bg-amber-200" },
-  { value: "mastered", label: "Mastered", color: "bg-green-100 text-green-700 hover:bg-green-200" },
+  { value: "new", label: "New", color: "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700" },
+  { value: "learning", label: "Learning", color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25" },
+  { value: "familiar", label: "Familiar", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25" },
+  { value: "mastered", label: "Mastered", color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25" },
 ] as const;
 
 type MasteryBadgeProps = {
@@ -86,12 +86,12 @@ export default function MasteryBadge({
             <span
               className={`inline-block size-2 rounded-full ${
                 level.value === "new"
-                  ? "bg-gray-400"
+                  ? "bg-neutral-400"
                   : level.value === "learning"
-                    ? "bg-blue-500"
+                    ? "bg-blue-400"
                     : level.value === "familiar"
-                      ? "bg-amber-500"
-                      : "bg-green-500"
+                      ? "bg-amber-400"
+                      : "bg-emerald-400"
               }`}
             />
             {level.label}

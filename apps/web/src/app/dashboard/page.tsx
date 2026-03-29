@@ -73,7 +73,7 @@ export default function DashboardHome() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Home</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Home</h1>
         <p className="text-muted-foreground">
           Welcome back. Here&apos;s your learning overview.
         </p>
@@ -84,7 +84,7 @@ export default function DashboardHome() {
         <Card className="md:col-span-2 lg:col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="size-5 text-primary" />
+              <GraduationCap className="size-5 text-muted-foreground" />
               Review
             </CardTitle>
           </CardHeader>
@@ -117,35 +117,35 @@ export default function DashboardHome() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="size-5 text-primary" />
+              <BarChart3 className="size-5 text-muted-foreground" />
               Quick Stats
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Reviews</p>
+                <p className="text-3xl font-bold tracking-tighter">
                   {loading ? "--" : (stats?.totalReviewed ?? 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Reviews</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Accuracy</p>
+                <p className="text-3xl font-bold tracking-tighter">
                   {loading ? "--" : `${stats?.avgAccuracy ?? 0}%`}
                 </p>
-                <p className="text-xs text-muted-foreground">Accuracy</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Due Now</p>
+                <p className="text-3xl font-bold tracking-tighter">
                   {loading ? "--" : (dueCount ?? 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Due Now</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Streak</p>
+                <p className="text-3xl font-bold tracking-tighter">
                   {loading ? "--" : (overview?.currentStreak ?? 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Streak</p>
               </div>
             </div>
           </CardContent>
@@ -157,7 +157,7 @@ export default function DashboardHome() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="size-5 text-primary" />
+              <BookOpen className="size-5 text-muted-foreground" />
               Recent Words
             </CardTitle>
             <Button variant="ghost" size="sm" asChild>

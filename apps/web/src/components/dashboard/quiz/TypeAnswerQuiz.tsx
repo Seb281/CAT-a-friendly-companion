@@ -90,10 +90,10 @@ export default function TypeAnswerQuiz({
       ) : (
         <div className="w-full space-y-4 animate-in fade-in duration-200">
           <div
-            className={`flex items-center gap-2 rounded-md p-3 ${
+            className={`flex items-center gap-2 rounded-lg p-3 ${
               isCorrect
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
+                ? "bg-emerald-500/10 text-emerald-500"
+                : "bg-red-500/10 text-[#ee7d77]"
             }`}
           >
             {isCorrect ? (

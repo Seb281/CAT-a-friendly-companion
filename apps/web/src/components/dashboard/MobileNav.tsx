@@ -15,7 +15,6 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Tags, ArrowUpDown, Settings, LogOut } from "lucide-react";
@@ -52,7 +51,7 @@ export default function MobileNav({
   const moreActive = MORE_ITEMS.some((item) => isActive(item.href));
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl">
       <div className="flex items-center justify-around h-14">
         {TABS.map((tab) => (
           <Link
@@ -61,7 +60,7 @@ export default function MobileNav({
             className={cn(
               "flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition-colors",
               isActive(tab.href)
-                ? "text-primary"
+                ? "text-foreground"
                 : "text-muted-foreground"
             )}
           >
@@ -74,7 +73,7 @@ export default function MobileNav({
             <button
               className={cn(
                 "flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition-colors",
-                moreActive ? "text-primary" : "text-muted-foreground"
+                moreActive ? "text-foreground" : "text-muted-foreground"
               )}
             >
               <Menu className="size-5" />
@@ -90,9 +89,9 @@ export default function MobileNav({
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium",
                     isActive(item.href)
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground"
                   )}
                 >
@@ -100,11 +99,11 @@ export default function MobileNav({
                   {item.label}
                 </Link>
               ))}
-              <div className="border-t my-2" />
+              <div className="my-2" />
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-muted-foreground w-full"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground w-full"
                   onClick={() => setOpen(false)}
                 >
                   <LogOut className="size-5" />

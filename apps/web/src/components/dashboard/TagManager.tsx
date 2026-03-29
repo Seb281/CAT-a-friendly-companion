@@ -185,7 +185,7 @@ export default function TagManager() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-32">
-        <Loader2 className="size-6 animate-spin text-primary" />
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -195,7 +195,7 @@ export default function TagManager() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Tags className="size-5 text-primary" />
+            <Tags className="size-5 text-muted-foreground" />
             Your Tags
           </CardTitle>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -229,10 +229,10 @@ export default function TagManager() {
                       <button
                         key={c}
                         type="button"
-                        className={`size-7 rounded-full border-2 transition-all ${
+                        className={`size-7 rounded-full ring-2 ring-offset-2 ring-offset-background transition-all ${
                           newColor === c
-                            ? "border-foreground scale-110"
-                            : "border-transparent"
+                            ? "ring-foreground scale-110"
+                            : "ring-transparent"
                         }`}
                         style={{ backgroundColor: c }}
                         onClick={() => setNewColor(c)}
@@ -289,7 +289,7 @@ export default function TagManager() {
             {tags.map((tag) => (
               <div
                 key={tag.id}
-                className="flex items-center justify-between rounded-md border px-3 py-2"
+                className="flex items-center justify-between rounded-md bg-secondary px-3 py-2"
               >
                 <TagBadge name={tag.name} color={tag.color} />
                 <div className="flex items-center gap-1">
@@ -350,10 +350,10 @@ export default function TagManager() {
                     <button
                       key={c}
                       type="button"
-                      className={`size-7 rounded-full border-2 transition-all ${
+                      className={`size-7 rounded-full ring-2 ring-offset-2 ring-offset-background transition-all ${
                         editColor === c
-                          ? "border-foreground scale-110"
-                          : "border-transparent"
+                          ? "ring-foreground scale-110"
+                          : "ring-transparent"
                       }`}
                       style={{ backgroundColor: c }}
                       onClick={() => setEditColor(c)}

@@ -92,7 +92,7 @@ export default function ReviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Review</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Review</h1>
         <p className="text-muted-foreground">
           Choose a study mode and start practicing.
         </p>
@@ -101,8 +101,8 @@ export default function ReviewPage() {
       {/* Due count card */}
       <Card>
         <CardContent className="flex items-center gap-4 pt-6">
-          <div className="p-3 rounded-full bg-primary/10">
-            <GraduationCap className="size-6 text-primary" />
+          <div className="p-3 rounded-lg bg-secondary">
+            <GraduationCap className="size-6 text-muted-foreground" />
           </div>
           <div className="flex-1">
             {loading ? (
@@ -133,16 +133,16 @@ export default function ReviewPage() {
         {MODES.map((mode) => (
           <Card
             key={mode.value}
-            className={`cursor-pointer transition-colors ${
+            className={`cursor-pointer transition-all ${
               selectedMode === mode.value
-                ? "border-primary ring-1 ring-primary"
-                : "hover:border-primary/50"
+                ? "bg-primary/10 ring-1 ring-primary/50"
+                : "hover:bg-card/80"
             } ${dueCount === 0 ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => setSelectedMode(mode.value)}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <mode.icon className="size-5 text-primary" />
+                <mode.icon className="size-5 text-muted-foreground" />
                 {mode.label}
               </CardTitle>
             </CardHeader>

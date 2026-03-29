@@ -195,7 +195,7 @@ export default function ConceptsList() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="size-8 animate-spin text-primary" />
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -365,7 +365,7 @@ export default function ConceptsList() {
 
                 {/* Expanded details */}
                 {expandedId === concept.id && (
-                  <div className="pt-2 border-t space-y-3 animate-in fade-in duration-200">
+                  <div className="pt-3 space-y-3 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
                         Status:
@@ -387,28 +387,28 @@ export default function ConceptsList() {
 
                     {concept.commonUsage && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Usage</p>
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Usage</p>
                         <p className="text-sm">{concept.commonUsage}</p>
                       </div>
                     )}
 
                     {concept.grammarRules && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Grammar</p>
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Grammar</p>
                         <p className="text-sm">{concept.grammarRules}</p>
                       </div>
                     )}
 
                     {concept.commonness && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Commonness</p>
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Commonness</p>
                         <p className="text-sm">{concept.commonness}</p>
                       </div>
                     )}
 
                     {concept.fixedExpression && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Expression</p>
+                        <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Expression</p>
                         <p className="text-sm">{concept.fixedExpression}</p>
                       </div>
                     )}
@@ -429,7 +429,7 @@ export default function ConceptsList() {
                     />
 
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Tags</p>
+                      <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Tags</p>
                       <TagSelector
                         conceptId={concept.id}
                         assignedTags={concept.tags ?? []}

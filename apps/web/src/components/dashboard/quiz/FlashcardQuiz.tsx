@@ -51,8 +51,8 @@ export default function FlashcardQuiz({
             </Button>
           ) : (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="border-t pt-4">
-                <p className="text-xl font-semibold text-primary">
+              <div className="pt-4">
+                <p className="text-xl font-semibold text-foreground">
                   {question.translation}
                 </p>
               </div>
@@ -91,7 +91,7 @@ export default function FlashcardQuiz({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border-green-500 text-green-600 hover:bg-green-50"
+            className="flex-1 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
             onClick={() => handleRate("easy")}
           >
             Easy

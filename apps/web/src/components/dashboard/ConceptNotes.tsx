@@ -112,7 +112,7 @@ export default function ConceptNotes({
       {/* Personal Notes */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">
             Personal Notes
           </p>
           {saving && (
@@ -131,7 +131,7 @@ export default function ConceptNotes({
       {/* Example Sentence */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">
             Example Sentence
           </p>
           <Button
@@ -150,7 +150,7 @@ export default function ConceptNotes({
           </Button>
         </div>
         {exampleSentence ? (
-          <p className="text-sm bg-muted/50 rounded-md p-2 italic">
+          <p className="text-sm bg-secondary/50 rounded-lg p-3 italic">
             {exampleSentence}
           </p>
         ) : (

@@ -184,7 +184,7 @@ export default function ImportDialog({ onComplete }: { onComplete?: () => void }
 
           {preview.length > 0 && !result && (
             <>
-              <div className="rounded-md border p-3 max-h-48 overflow-y-auto">
+              <div className="rounded-md bg-secondary p-3 max-h-48 overflow-y-auto">
                 <p className="text-sm font-medium mb-2">
                   Preview ({preview.length} items from {fileName})
                 </p>
@@ -229,7 +229,7 @@ export default function ImportDialog({ onComplete }: { onComplete?: () => void }
           )}
 
           {result && (
-            <div className="rounded-md border p-4 space-y-2">
+            <div className="rounded-md bg-secondary p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-5 text-green-500" />
                 <p className="font-medium">Import Complete</p>

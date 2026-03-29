@@ -20,12 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Key, ShieldCheck, AlertCircle } from "lucide-react";
+import { Loader2, Key, ShieldCheck, AlertCircle, Monitor, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function SettingsForm() {
   const supabase = createClient();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Form State
   const [targetLanguage, setTargetLanguage] = useState("");
@@ -124,12 +131,49 @@ export default function SettingsForm() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-32">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
+  const THEME_OPTIONS = [
+    { value: "system", label: "Sync with device", icon: Monitor },
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+  ] as const;
+
   return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>
+            Choose how the dashboard looks to you.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {mounted && (
+            <div className="grid grid-cols-3 gap-3">
+              {THEME_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setTheme(option.value)}
+                  className={`flex flex-col items-center gap-2 rounded-lg p-4 transition-colors ${
+                    theme === option.value
+                      ? "bg-primary/15 text-foreground ring-1 ring-primary/50"
+                      : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                  }`}
+                >
+                  <option.icon className="size-5" />
+                  <span className="text-xs font-medium">{option.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
     <form onSubmit={handleSave} className="space-y-6">
       <Card>
         <CardHeader>
@@ -205,13 +249,13 @@ export default function SettingsForm() {
             </div>
             
             {hasCustomApiKey && (
-              <div className="flex items-center gap-2 text-sm text-green-600 mt-2">
+              <div className="flex items-center gap-2 text-sm text-emerald-500 mt-2">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Active Key: {maskedApiKey}</span>
               </div>
             )}
             
-            <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
+            <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-secondary/50 p-3 rounded-lg">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <p>
                 Your API key is encrypted and stored securely. We only use it to generate your translations.
@@ -229,5 +273,6 @@ export default function SettingsForm() {
         </Button>
       </div>
     </form>
+    </div>
   );
 }

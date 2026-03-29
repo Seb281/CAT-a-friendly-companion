@@ -9,7 +9,7 @@ export default function ImportExportPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Import / Export</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Import / Export</h1>
         <p className="text-muted-foreground">
           Back up your vocabulary or import from other tools.
         </p>
@@ -19,7 +19,7 @@ export default function ImportExportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Download className="size-5 text-primary" />
+              <Download className="size-5 text-muted-foreground" />
               Export
             </CardTitle>
           </CardHeader>
@@ -34,7 +34,7 @@ export default function ImportExportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Upload className="size-5 text-primary" />
+              <Upload className="size-5 text-muted-foreground" />
               Import
             </CardTitle>
           </CardHeader>

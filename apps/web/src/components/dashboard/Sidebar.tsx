@@ -69,20 +69,20 @@ export default function Sidebar({
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "hidden lg:flex flex-col border-r bg-background h-screen sticky top-0 transition-all duration-200",
-          collapsed ? "w-16" : "w-60"
+          "hidden lg:flex flex-col bg-sidebar h-screen sticky top-0 transition-all duration-200",
+          collapsed ? "w-16" : "w-[220px]"
         )}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 px-4 h-14 border-b shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold min-w-0">
-            <Languages className="size-5 text-primary shrink-0" />
-            {!collapsed && <span className="truncate">Context Translator</span>}
+        <div className="flex items-center gap-2 px-4 h-14 shrink-0 mb-4">
+          <Link href="/dashboard" className="flex items-center gap-2 font-bold min-w-0">
+            <Languages className="size-5 text-muted-foreground shrink-0" />
+            {!collapsed && <span className="truncate text-sidebar-foreground tracking-tight">Context Translator</span>}
           </Link>
         </div>
 
         {/* Primary nav */}
-        <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-1 px-2 space-y-1 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
             const link = (
@@ -90,10 +90,10 @@ export default function Sidebar({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   collapsed && "justify-center px-2"
                 )}
               >
@@ -113,7 +113,7 @@ export default function Sidebar({
             return link;
           })}
 
-          <div className="my-3 border-t" />
+          <div className="my-3" />
 
           {SECONDARY_NAV.map((item) => {
             const active = isActive(item.href);
@@ -122,10 +122,10 @@ export default function Sidebar({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   collapsed && "justify-center px-2"
                 )}
               >
@@ -147,13 +147,13 @@ export default function Sidebar({
         </nav>
 
         {/* Footer */}
-        <div className="border-t px-2 py-3 space-y-2 shrink-0">
+        <div className="px-2 py-3 space-y-2 shrink-0">
           {/* Collapse toggle */}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleCollapse}
-            className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
+            className={cn("w-full text-muted-foreground hover:text-foreground", collapsed ? "justify-center" : "justify-start")}
           >
             {collapsed ? (
               <ChevronRight className="size-4" />
@@ -167,8 +167,8 @@ export default function Sidebar({
 
           {/* User info + sign out */}
           <div className={cn("flex items-center gap-2 px-2", collapsed && "justify-center")}>
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <User className="size-3.5 text-primary" />
+            <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
+              <User className="size-3.5 text-muted-foreground" />
             </div>
             {!collapsed && (
               <span className="text-xs text-muted-foreground truncate flex-1">
@@ -181,7 +181,7 @@ export default function Sidebar({
               variant="ghost"
               size="sm"
               type="submit"
-              className={cn("w-full text-muted-foreground", collapsed ? "justify-center" : "justify-start")}
+              className={cn("w-full text-muted-foreground hover:text-foreground", collapsed ? "justify-center" : "justify-start")}
             >
               <LogOut className="size-4 shrink-0" />
               {!collapsed && <span className="ml-2">Sign Out</span>}

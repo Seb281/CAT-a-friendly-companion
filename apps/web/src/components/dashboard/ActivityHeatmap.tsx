@@ -21,10 +21,10 @@ type ActivityHeatmapProps = {
 
 function getIntensity(count: number): string {
   if (count === 0) return "bg-muted";
-  if (count <= 2) return "bg-green-200 dark:bg-green-900";
-  if (count <= 5) return "bg-green-400 dark:bg-green-700";
-  if (count <= 10) return "bg-green-500 dark:bg-green-600";
-  return "bg-green-600 dark:bg-green-500";
+  if (count <= 2) return "bg-emerald-500/20";
+  if (count <= 5) return "bg-emerald-500/40";
+  if (count <= 10) return "bg-emerald-500/60";
+  return "bg-emerald-500";
 }
 
 export default function ActivityHeatmap({
@@ -137,10 +137,10 @@ export default function ActivityHeatmap({
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground justify-end">
           <span>Less</span>
           <div className="size-[10px] rounded-sm bg-muted" />
-          <div className="size-[10px] rounded-sm bg-green-200 dark:bg-green-900" />
-          <div className="size-[10px] rounded-sm bg-green-400 dark:bg-green-700" />
-          <div className="size-[10px] rounded-sm bg-green-500 dark:bg-green-600" />
-          <div className="size-[10px] rounded-sm bg-green-600 dark:bg-green-500" />
+          <div className="size-[10px] rounded-sm bg-emerald-500/20" />
+          <div className="size-[10px] rounded-sm bg-emerald-500/40" />
+          <div className="size-[10px] rounded-sm bg-emerald-500/60" />
+          <div className="size-[10px] rounded-sm bg-emerald-500" />
           <span>More</span>
         </div>
       </div>
