@@ -626,10 +626,13 @@ export default function TranslationPopup({
                 {translation.phoneticApproximation && (
                   <div className='space-y-1.5'>
                     <div className='flex items-center gap-2'>
-                      <Volume2
-                        className={`h-4 w-4 cursor-pointer transition-colors ${isSpeaking ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      <button
                         onClick={handleSpeak}
-                      />
+                        title="Listen to pronunciation"
+                        className={`inline-flex items-center justify-center rounded p-0.5 transition-colors ${isSpeaking ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      >
+                        <Volume2 className="h-4 w-4" />
+                      </button>
                       <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                         Pronunciation
                       </span>

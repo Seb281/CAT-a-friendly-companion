@@ -702,7 +702,8 @@ export default function ConceptsList() {
                 <CardTitle className="text-xl leading-tight">
                   <Link
                     href={`/dashboard/vocabulary/${concept.id}`}
-                    className="hover:underline"
+                    className="underline decoration-muted-foreground/30 underline-offset-4 hover:decoration-foreground/50 transition-colors"
+                    title="View concept details"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {concept.concept}
@@ -719,13 +720,16 @@ export default function ConceptsList() {
                 {/* Pronunciation preview (always visible if available) */}
                 {concept.phoneticApproximation && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Volume2
-                      className={`size-3.5 shrink-0 cursor-pointer transition-colors ${speakingId === concept.id ? "text-primary" : "hover:text-foreground"}`}
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSpeak(concept.id, concept.concept, concept.sourceLanguage);
                       }}
-                    />
+                      title="Listen to pronunciation"
+                      className={`inline-flex items-center justify-center shrink-0 rounded p-0.5 transition-colors ${speakingId === concept.id ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <Volume2 className="size-3.5" />
+                    </button>
                     <span className="italic">{concept.phoneticApproximation}</span>
                   </div>
                 )}
