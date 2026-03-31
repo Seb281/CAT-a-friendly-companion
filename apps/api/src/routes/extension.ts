@@ -8,6 +8,7 @@ import {
 } from '../middleware/supabaseAuth.ts'
 import conceptsData from '../data/conceptsData.ts'
 import tagsData from '../data/tagsData.ts'
+import reviewData from '../data/reviewData.ts'
 import { usersData, userContextData } from '../data/usersData.ts'
 import statsData from '../data/statsData.ts'
 
@@ -33,6 +34,9 @@ type SaveConceptBody = {
   translation: string
   sourceLanguage: string
   targetLanguage: string
+  contextBefore?: string
+  contextAfter?: string
+  sourceUrl?: string
 }
 
 type UpdateConceptBody = {
@@ -42,11 +46,23 @@ type UpdateConceptBody = {
   state?: string
 }
 
+type BulkDeleteBody = {
+  ids: number[]
+}
+
+type BulkUpdateBody = {
+  ids: number[]
+  state?: string
+  addTagId?: number
+  removeTagId?: number
+}
+
 type ConceptsQuerystring = {
   search?: string
   language?: string
   state?: string
   tags?: string
+  reviewStatus?: 'overdue' | 'due-today' | 'reviewed' | 'new'
   sortBy?: 'date' | 'alpha'
   sortOrder?: 'asc' | 'desc'
   page?: string
@@ -64,6 +80,7 @@ type UserSettingsBody = {
   personalContext: string | null
   customApiKey?: string | null
   preferredProvider?: string | null
+  dailyGoal?: number
 }
 
 export async function extensionRoutes(
@@ -99,7 +116,7 @@ export async function extensionRoutes(
         ...(name && { name }),
       })
 
-      const { concept, translation, sourceLanguage, targetLanguage } = request.body
+      const { concept, translation, sourceLanguage, targetLanguage, contextBefore, contextAfter, sourceUrl } = request.body
 
       if (!concept || !translation || !sourceLanguage || !targetLanguage) {
         return reply.code(400).send({
@@ -125,6 +142,9 @@ export async function extensionRoutes(
         translation,
         sourceLanguage,
         targetLanguage,
+        ...(contextBefore && { contextBefore }),
+        ...(contextAfter && { contextAfter }),
+        ...(sourceUrl && { sourceUrl }),
       })
 
       // Enrich with rich translation data in background (non-blocking)
@@ -374,6 +394,86 @@ export async function extensionRoutes(
     }
   )
 
+  // Protected endpoint - bulk delete concepts
+  fastify.delete<{ Body: BulkDeleteBody }>(
+    '/saved-concepts/bulk',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest<{ Body: BulkDeleteBody }>, reply: FastifyReply) => {
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.code(401).send({ error: 'User not found' })
+      }
+
+      const { ids } = request.body
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return reply.code(400).send({ error: 'ids array is required and must not be empty' })
+      }
+
+      const deleted = await conceptsData.bulkDeleteConcepts(user.id, ids)
+      return reply.send({ message: 'Concepts deleted', deleted })
+    }
+  )
+
+  // Protected endpoint - bulk update concepts (state or tags)
+  fastify.patch<{ Body: BulkUpdateBody }>(
+    '/saved-concepts/bulk',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest<{ Body: BulkUpdateBody }>, reply: FastifyReply) => {
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.code(401).send({ error: 'User not found' })
+      }
+
+      const { ids, state, addTagId, removeTagId } = request.body
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return reply.code(400).send({ error: 'ids array is required and must not be empty' })
+      }
+
+      if (state === undefined && addTagId === undefined && removeTagId === undefined) {
+        return reply.code(400).send({ error: 'At least one action (state, addTagId, removeTagId) must be provided' })
+      }
+
+      const validStates = ['new', 'learning', 'familiar', 'mastered']
+      if (state !== undefined && !validStates.includes(state)) {
+        return reply.code(400).send({ error: `Invalid state. Must be one of: ${validStates.join(', ')}` })
+      }
+
+      let updated = 0
+
+      if (state !== undefined) {
+        updated = await conceptsData.bulkUpdateConceptState(user.id, ids, state)
+      }
+
+      if (addTagId !== undefined) {
+        const tag = await tagsData.findTagById(addTagId, user.id)
+        if (!tag) {
+          return reply.code(404).send({ error: 'Tag not found' })
+        }
+        await tagsData.bulkAddTag(ids, addTagId)
+      }
+
+      if (removeTagId !== undefined) {
+        const tag = await tagsData.findTagById(removeTagId, user.id)
+        if (!tag) {
+          return reply.code(404).send({ error: 'Tag not found' })
+        }
+        await tagsData.bulkRemoveTag(ids, removeTagId)
+      }
+
+      return reply.send({ message: 'Concepts updated', updated })
+    }
+  )
+
   // Protected endpoint - get saved concepts with search/filter/sort
   fastify.get<{ Querystring: ConceptsQuerystring }>(
     '/saved-concepts',
@@ -394,16 +494,40 @@ export async function extensionRoutes(
         return reply.send({ message: 'Concepts retrieved', concepts: [], total: 0 })
       }
 
-      const { search, language, state, tags, sortBy, sortOrder, page, limit } = request.query
+      const { search, language, state, tags, reviewStatus, sortBy, sortOrder, page, limit } = request.query
 
       // If tag filter is provided, resolve matching concept IDs first
-      let tagConceptIds: number[] | undefined
+      let filteredConceptIds: number[] | undefined
       if (tags) {
         const tagIds = tags.split(',').map((id) => parseInt(id.trim(), 10)).filter((id) => !isNaN(id))
         if (tagIds.length > 0) {
-          tagConceptIds = await tagsData.getConceptIdsWithAllTags(tagIds)
-          if (tagConceptIds.length === 0) {
+          filteredConceptIds = await tagsData.getConceptIdsWithAllTags(tagIds)
+          if (filteredConceptIds.length === 0) {
             return reply.send({ message: 'Concepts retrieved', concepts: [], total: 0 })
+          }
+        }
+      }
+
+      // If review status filter is provided, resolve matching concept IDs
+      if (reviewStatus) {
+        const validStatuses = ['overdue', 'due-today', 'reviewed', 'new'] as const
+        if (validStatuses.includes(reviewStatus as typeof validStatuses[number])) {
+          const reviewConceptIds = await reviewData.getConceptIdsByReviewStatus(
+            user.id,
+            reviewStatus as typeof validStatuses[number]
+          )
+          if (reviewConceptIds.length === 0) {
+            return reply.send({ message: 'Concepts retrieved', concepts: [], total: 0 })
+          }
+          // Intersect with tag filter if both are present
+          if (filteredConceptIds) {
+            const reviewSet = new Set(reviewConceptIds)
+            filteredConceptIds = filteredConceptIds.filter((id) => reviewSet.has(id))
+            if (filteredConceptIds.length === 0) {
+              return reply.send({ message: 'Concepts retrieved', concepts: [], total: 0 })
+            }
+          } else {
+            filteredConceptIds = reviewConceptIds
           }
         }
       }
@@ -412,26 +536,82 @@ export async function extensionRoutes(
         search,
         language,
         state,
-        conceptIds: tagConceptIds,
+        conceptIds: filteredConceptIds,
         sortBy,
         sortOrder,
         page: page ? parseInt(page, 10) : undefined,
         limit: limit ? parseInt(limit, 10) : undefined,
       })
 
-      // Batch-load tags for returned concepts
+      // Batch-load tags and review schedules for returned concepts
       const conceptIds = result.concepts.map((c) => c.id)
-      const tagsMap = await tagsData.getTagsForConcepts(conceptIds)
+      const [tagsMap, reviewMap] = await Promise.all([
+        tagsData.getTagsForConcepts(conceptIds),
+        reviewData.getReviewSchedulesForConcepts(conceptIds),
+      ])
 
-      const conceptsWithTags = result.concepts.map((c) => ({
+      const conceptsWithMeta = result.concepts.map((c) => ({
         ...c,
         tags: tagsMap.get(c.id) ?? [],
+        nextReviewAt: reviewMap.get(c.id)?.nextReviewAt?.toISOString() ?? null,
       }))
 
       return reply.send({
         message: 'Concepts retrieved',
-        concepts: conceptsWithTags,
+        concepts: conceptsWithMeta,
         total: result.total,
+      })
+    }
+  )
+
+  // Protected endpoint - get a single concept with tags and review schedule
+  fastify.get<{ Params: { id: string } }>(
+    '/saved-concepts/:id',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const conceptId = parseInt(request.params.id, 10)
+      if (isNaN(conceptId)) {
+        return reply.code(400).send({ error: 'Invalid concept ID' })
+      }
+
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.code(404).send({ error: 'User not found' })
+      }
+
+      const concept = await conceptsData.findConceptById(conceptId, user.id)
+      if (!concept) {
+        return reply.code(404).send({ error: 'Concept not found' })
+      }
+
+      // Get tags for this concept
+      const tagsMap = await tagsData.getTagsForConcepts([conceptId])
+      const tags = tagsMap.get(conceptId) ?? []
+
+      // Get review schedule if it exists
+      const schedule = await reviewData.getScheduleForConcept(conceptId, user.id)
+
+      return reply.send({
+        concept: {
+          ...concept,
+          tags,
+          schedule: schedule
+            ? {
+                easeFactor: schedule.easeFactor,
+                interval: schedule.interval,
+                repetitions: schedule.repetitions,
+                nextReviewAt: schedule.nextReviewAt,
+                lastReviewedAt: schedule.lastReviewedAt,
+                totalReviews: schedule.totalReviews,
+                correctReviews: schedule.correctReviews,
+              }
+            : null,
+        },
       })
     }
   )
@@ -579,6 +759,8 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         return reply.code(401).send({ error: 'Could not get user email' })
       }
 
+      const supabaseId = getAuthenticatedUserId(request)
+      const user = supabaseId ? await usersData.retrieveUserBySupabaseId(supabaseId) : null
       const settings = await userContextData.retrieveUserContext(email)
 
       // Mask API key for security
@@ -597,7 +779,9 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         personalContext: settings.context,
         preferredProvider: settings.preferredProvider,
         maskedApiKey: maskedKey,
-        hasCustomApiKey: !!settings.customApiKey
+        hasCustomApiKey: !!settings.customApiKey,
+        dailyGoal: user?.dailyGoal ?? 10,
+        streakFreezes: user?.streakFreezes ?? 0,
       })
     }
   )
@@ -620,15 +804,23 @@ Keep it simple and practical. Only return the JSON, nothing else.`
       // Ensure user exists in database
       const userFromAuth = (request as any).user
       const name = userFromAuth.user_metadata?.full_name ?? userFromAuth.user_metadata?.name
-      await usersData.findOrCreateUser({
+      const user = await usersData.findOrCreateUser({
         supabaseId: userId,
         email,
         ...(name && { name }),
       })
 
-      const { targetLanguage, personalContext, customApiKey, preferredProvider } = request.body
+      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal } = request.body
+
+      // Validate dailyGoal if provided
+      if (dailyGoal !== undefined) {
+        if (!Number.isInteger(dailyGoal) || dailyGoal < 1 || dailyGoal > 100) {
+          return reply.code(400).send({ error: 'dailyGoal must be an integer between 1 and 100' })
+        }
+      }
+
       const currentSettings = await userContextData.retrieveUserContext(email)
-      
+
       let newApiKey = currentSettings.customApiKey
       if (customApiKey !== undefined) {
          newApiKey = customApiKey
@@ -647,6 +839,13 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         newProvider
       )
 
+      // Update dailyGoal on the user record if provided
+      let updatedDailyGoal = user.dailyGoal
+      if (dailyGoal !== undefined) {
+        await usersData.updateDailyGoal(user.id, dailyGoal)
+        updatedDailyGoal = dailyGoal
+      }
+
       // Mask key for response
       let maskedKey = null
       if (updatedSettings.customApiKey) {
@@ -664,7 +863,9 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         personalContext: updatedSettings.context,
         preferredProvider: updatedSettings.preferredProvider,
         maskedApiKey: maskedKey,
-        hasCustomApiKey: !!updatedSettings.customApiKey
+        hasCustomApiKey: !!updatedSettings.customApiKey,
+        dailyGoal: updatedDailyGoal,
+        streakFreezes: user.streakFreezes,
       })
     }
   )

@@ -5,11 +5,18 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge.tsx'
-import { Languages, Check, LogOut, User, X } from 'lucide-react'
+import { Languages, Check, LogOut, User, X, Bell, BookOpen, PanelRight } from 'lucide-react'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { Separator } from '@/components/ui/separator'
 import type { Session } from '@supabase/supabase-js'
 import AuthForm from './AuthForm'
+import QuickReview from './QuickReview'
+
+function formatHour(hour: number): string {
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+  return `${display}:00 ${period}`
+}
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -19,6 +26,10 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [allowedSites, setAllowedSites] = useState<string[]>([])
   const [currentSitePattern, setCurrentSitePattern] = useState<string | null>(null)
+  const [reminderEnabled, setReminderEnabled] = useState(false)
+  const [reminderHour, setReminderHour] = useState(9)
+  const [dueCount, setDueCount] = useState(0)
+  const [showReview, setShowReview] = useState(false)
 
   // Initialize Supabase session and listen for changes
   useEffect(() => {
@@ -27,6 +38,7 @@ export default function App() {
       setIsLoading(false)
       if (session) {
         fetchSettingsFromApi()
+        fetchDueCount()
       }
     })
 
@@ -36,8 +48,10 @@ export default function App() {
       setSession(session)
       if (session) {
         fetchSettingsFromApi()
+        fetchDueCount()
       } else {
         setPersonalContext('')
+        setDueCount(0)
       }
     })
 
@@ -89,6 +103,12 @@ export default function App() {
     )
   }
 
+  const fetchDueCount = () => {
+    chrome.runtime.sendMessage({ action: 'getDueCount' }, (response) => {
+      setDueCount(response?.dueCount ?? 0)
+    })
+  }
+
   const languages: Array<{ code: string; name: string }> = []
 
   for (const lang in LANGUAGE_NAMES) {
@@ -103,6 +123,26 @@ export default function App() {
         setPersonalContext(result.personalContext as string)
     })
   }, [])
+
+  // Load reminder settings from storage
+  useEffect(() => {
+    chrome.storage.sync.get(['reminderEnabled', 'reminderHour'], (result) => {
+      if (result.reminderEnabled !== undefined)
+        setReminderEnabled(result.reminderEnabled as boolean)
+      if (result.reminderHour !== undefined)
+        setReminderHour(result.reminderHour as number)
+    })
+  }, [])
+
+  function handleReminderToggle(enabled: boolean) {
+    setReminderEnabled(enabled)
+    chrome.storage.sync.set({ reminderEnabled: enabled })
+  }
+
+  function handleReminderHourChange(hour: number) {
+    setReminderHour(hour)
+    chrome.storage.sync.set({ reminderHour: hour })
+  }
 
   function handleSave() {
     // Save to local storage
@@ -189,6 +229,17 @@ export default function App() {
     )
   }
 
+  if (showReview) {
+    return (
+      <QuickReview
+        onBack={() => {
+          setShowReview(false)
+          fetchDueCount()
+        }}
+      />
+    )
+  }
+
   return (
     <div className='w-[420px]'>
       <Card className='rounded-none shadow-none'>
@@ -197,10 +248,27 @@ export default function App() {
             <Languages className='h-5 w-5 text-primary' />
             <CardTitle className='text-lg'>Context-Aware Translator</CardTitle>
           </div>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Translate any text, in context. Enable on a site for automatic
-            activation, or right-click selected text to translate anywhere.
-          </p>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground mt-1 flex-1'>
+              Translate any text, in context. Enable on a site for automatic
+              activation, or right-click selected text to translate anywhere.
+            </p>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={async () => {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+                if (tab?.windowId) {
+                  chrome.sidePanel.open({ windowId: tab.windowId })
+                  window.close()
+                }
+              }}
+              className='ml-2 shrink-0 text-muted-foreground hover:text-foreground'
+              title='Open Side Panel'
+            >
+              <PanelRight className='h-4 w-4' />
+            </Button>
+          </div>
           <div className='mt-2'>
             {currentSitePattern ? (
               isCurrentSiteAllowed ? (
@@ -264,6 +332,20 @@ export default function App() {
         </CardHeader>
 
         <CardContent className='space-y-4'>
+          {session && dueCount > 0 && (
+            <div className='flex items-center justify-between bg-primary/5 p-3 rounded-lg border border-primary/20'>
+              <div className='flex items-center gap-2'>
+                <BookOpen className='h-4 w-4 text-primary' />
+                <span className='text-sm font-medium'>
+                  {dueCount} {dueCount === 1 ? 'word' : 'words'} due
+                </span>
+              </div>
+              <Button size='sm' onClick={() => setShowReview(true)}>
+                Quick Review
+              </Button>
+            </div>
+          )}
+
           <div className='space-y-2'>
             <Label
               htmlFor='language'
@@ -366,6 +448,59 @@ export default function App() {
               </div>
             </div>
           </div>
+          <Separator />
+
+          <div className='space-y-2'>
+            <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+              Daily Reminder
+            </p>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <Bell className='h-3.5 w-3.5 text-muted-foreground' />
+                <span className='text-sm'>Review reminder</span>
+              </div>
+              <button
+                type='button'
+                role='switch'
+                aria-checked={reminderEnabled}
+                onClick={() => handleReminderToggle(!reminderEnabled)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  reminderEnabled ? 'bg-primary' : 'bg-input'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                    reminderEnabled ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            {reminderEnabled && (
+              <div className='flex items-center gap-2 pl-5.5'>
+                <Label
+                  htmlFor='reminder-hour'
+                  className='text-xs text-muted-foreground'
+                >
+                  Notify at
+                </Label>
+                <select
+                  id='reminder-hour'
+                  value={reminderHour}
+                  onChange={(e) =>
+                    handleReminderHourChange(Number(e.target.value))
+                  }
+                  className='h-7 rounded-md bg-secondary px-2 py-0.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                >
+                  {Array.from({ length: 17 }, (_, i) => i + 6).map((hour) => (
+                    <option key={hour} value={hour}>
+                      {formatHour(hour)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
           <Separator />
 
           {!session ? (

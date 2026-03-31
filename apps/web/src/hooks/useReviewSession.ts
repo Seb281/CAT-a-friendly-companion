@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export type QuizMode = "flashcard" | "multiple-choice" | "type-answer";
+export type QuizMode = "flashcard" | "multiple-choice" | "type-answer" | "contextual-recall";
 
 export type Question = {
   conceptId: number;
@@ -15,6 +15,8 @@ export type Question = {
   commonUsage?: string | null;
   correctAnswer?: string;
   options?: string[];
+  contextBefore?: string | null;
+  contextAfter?: string | null;
 };
 
 export type SessionResult = {

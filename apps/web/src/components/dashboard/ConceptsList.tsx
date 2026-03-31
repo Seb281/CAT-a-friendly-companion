@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Trash2,
   Loader2,
@@ -21,8 +37,18 @@ import {
   Volume2,
   ChevronLeft,
   ChevronRight,
+  X,
+  Tags,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
+import { languageToBCP47 } from "@/lib/languageCodes";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ConceptNotes from "./ConceptNotes";
 import MasteryBadge from "./MasteryBadge";
 import TagBadge from "./TagBadge";
@@ -46,15 +72,39 @@ type Concept = {
   grammarRules: string | null;
   commonness: string | null;
   fixedExpression: string | null;
+  relatedWords: string | null;
   userNotes: string | null;
   exampleSentence: string | null;
   tags: Tag[];
+  nextReviewAt: string | null;
   createdAt: string;
   state: string;
   updatedAt: string;
 };
 
 const PAGE_SIZE = 30;
+
+function getReviewStatus(nextReviewAt: string | null): {
+  color: string;
+  label: string;
+} {
+  if (!nextReviewAt) {
+    return { color: "bg-neutral-400", label: "Never reviewed" };
+  }
+
+  const now = new Date();
+  const reviewDate = new Date(nextReviewAt);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000);
+
+  if (reviewDate < startOfToday) {
+    return { color: "bg-red-500", label: "Overdue" };
+  }
+  if (reviewDate < endOfToday) {
+    return { color: "bg-amber-500", label: "Due today" };
+  }
+  return { color: "bg-emerald-500", label: "Up to date" };
+}
 
 export default function ConceptsList() {
   const supabase = createClient();
@@ -77,9 +127,32 @@ export default function ConceptsList() {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [tagFilter, setTagFilter] = useState("all");
 
+  // Review status filter
+  const [reviewStatusFilter, setReviewStatusFilter] = useState("all");
+
   // Distinct language pairs for filter dropdown
   const [languagePairs, setLanguagePairs] = useState<string[]>([]);
   const [error, setError] = useState(false);
+  const [speakingId, setSpeakingId] = useState<number | null>(null);
+
+  function handleSpeak(conceptId: number, text: string, sourceLanguage: string) {
+    if (speakingId === conceptId) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    const langCode = languageToBCP47[sourceLanguage];
+    if (langCode) {
+      utterance.lang = langCode;
+    }
+    setSpeakingId(conceptId);
+    utterance.onend = () => setSpeakingId(null);
+    utterance.onerror = () => setSpeakingId(null);
+    speechSynthesis.speak(utterance);
+    setTimeout(() => setSpeakingId(null), 500);
+  }
+
+  // Selection state for bulk operations
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -144,6 +217,7 @@ export default function ConceptsList() {
       if (languageFilter !== "all") params.set("language", languageFilter);
       if (stateFilter !== "all") params.set("state", stateFilter);
       if (tagFilter !== "all") params.set("tags", tagFilter);
+      if (reviewStatusFilter !== "all") params.set("reviewStatus", reviewStatusFilter);
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
       params.set("page", page.toString());
@@ -169,7 +243,7 @@ export default function ConceptsList() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, API_URL, debouncedSearch, languageFilter, stateFilter, tagFilter, sortBy, sortOrder, page]);
+  }, [supabase, API_URL, debouncedSearch, languageFilter, stateFilter, tagFilter, reviewStatusFilter, sortBy, sortOrder, page]);
 
   useEffect(() => {
     fetchConcepts();
@@ -199,7 +273,113 @@ export default function ConceptsList() {
     }
   }
 
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set(concepts.map((c) => c.id)));
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function handleBulkDelete() {
+    setBulkLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(`${API_URL}/saved-concepts/bulk`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+
+      if (res.ok) {
+        clearSelection();
+        setDeleteDialogOpen(false);
+        fetchConcepts();
+      }
+    } catch (error) {
+      console.error("Failed to bulk delete:", error);
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  async function handleBulkStateChange(state: string) {
+    setBulkLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(`${API_URL}/saved-concepts/bulk`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ ids: Array.from(selectedIds), state }),
+      });
+
+      if (res.ok) {
+        clearSelection();
+        fetchConcepts();
+      }
+    } catch (error) {
+      console.error("Failed to bulk update state:", error);
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  async function handleBulkAddTag(tagId: number) {
+    setBulkLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(`${API_URL}/saved-concepts/bulk`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ ids: Array.from(selectedIds), addTagId: tagId }),
+      });
+
+      if (res.ok) {
+        clearSelection();
+        fetchConcepts();
+      }
+    } catch (error) {
+      console.error("Failed to bulk add tag:", error);
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasSelection = selectedIds.size > 0;
 
   if (loading) {
     return (
@@ -226,6 +406,7 @@ export default function ConceptsList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            data-search-input
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -271,6 +452,18 @@ export default function ConceptsList() {
               </SelectContent>
             </Select>
           )}
+          <Select value={reviewStatusFilter} onValueChange={(v) => { setReviewStatusFilter(v); setPage(1); }}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Review" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All review</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="due-today">Due today</SelectItem>
+              <SelectItem value="reviewed">Up to date</SelectItem>
+              <SelectItem value="new">Never reviewed</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => { const [by, order] = v.split("-"); setSortBy(by as "date" | "alpha"); setSortOrder(order as "asc" | "desc"); setPage(1); }}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Sort" />
@@ -285,6 +478,122 @@ export default function ConceptsList() {
         </div>
       </div>
 
+      {/* Bulk Selection Bar */}
+      {hasSelection && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={selectAll}
+            >
+              Select All
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={clearSelection}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Change State Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-7 text-xs" disabled={bulkLoading}>
+                  Change State
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[160px] p-1" align="end">
+                <div className="flex flex-col">
+                  {[
+                    { value: "new", label: "New", dotClass: "bg-neutral-400" },
+                    { value: "learning", label: "Learning", dotClass: "bg-blue-400" },
+                    { value: "familiar", label: "Familiar", dotClass: "bg-amber-400" },
+                    { value: "mastered", label: "Mastered", dotClass: "bg-emerald-400" },
+                  ].map((level) => (
+                    <button
+                      key={level.value}
+                      className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => handleBulkStateChange(level.value)}
+                    >
+                      <span className={`size-2 rounded-full ${level.dotClass}`} />
+                      {level.label}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Add Tag Popover */}
+            {allTags.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled={bulkLoading}>
+                    <Tags className="size-3" />
+                    Add Tag
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[180px] p-1" align="end">
+                  <div className="flex flex-col">
+                    {allTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => handleBulkAddTag(tag.id)}
+                      >
+                        <span
+                          className="size-3 rounded-full shrink-0"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* Delete with Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={bulkLoading}>
+                  {bulkLoading ? (
+                    <Loader2 className="size-3 animate-spin mr-1" />
+                  ) : (
+                    <Trash2 className="size-3 mr-1" />
+                  )}
+                  Delete
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete {selectedIds.size} {selectedIds.size === 1 ? "concept" : "concepts"}?</DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. The selected concepts will be permanently removed.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="destructive" onClick={handleBulkDelete} disabled={bulkLoading}>
+                    {bulkLoading && <Loader2 className="size-4 animate-spin mr-2" />}
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      )}
+
       {/* Results count + Export */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
@@ -298,37 +607,81 @@ export default function ConceptsList() {
         <div className="text-center py-12 space-y-4">
           <div className="flex justify-center">
             <div className="p-4 rounded-full bg-muted">
-              <BookOpen className="size-8 text-muted-foreground" />
+              {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all"
+                ? <Search className="size-8 text-muted-foreground" />
+                : <BookOpen className="size-8 text-muted-foreground" />}
             </div>
           </div>
           <h3 className="text-lg font-medium">
-            {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all"
+            {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all" || reviewStatusFilter !== "all"
               ? "No matching concepts"
               : "No saved concepts yet"}
           </h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all"
-              ? "Try adjusting your search or filters."
-              : "Start using the Context Translator extension to save words and phrases you want to learn."}
+            {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all" || reviewStatusFilter !== "all"
+              ? "No matching concepts. Try a different search term or clear your filters."
+              : "Install the browser extension, select any text on a webpage, and right-click \u2192 Translate to start building your vocabulary."}
           </p>
+          {(debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all" || reviewStatusFilter !== "all") && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setDebouncedSearch("");
+                setLanguageFilter("all");
+                setStateFilter("all");
+                setTagFilter("all");
+                setReviewStatusFilter("all");
+                setSortBy("date");
+                setSortOrder("desc");
+                setPage(1);
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {concepts.map((concept) => (
             <Card
               key={concept.id}
-              className="relative group cursor-pointer"
+              className={`relative group cursor-pointer ${selectedIds.has(concept.id) ? "ring-2 ring-primary" : ""}`}
               onClick={() =>
                 setExpandedId(
                   expandedId === concept.id ? null : concept.id
                 )
               }
             >
+              <div
+                className={`absolute top-3 left-3 z-10 transition-opacity ${hasSelection ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Checkbox
+                  checked={selectedIds.has(concept.id)}
+                  onCheckedChange={() => toggleSelect(concept.id)}
+                />
+              </div>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <Badge variant="outline" className="text-xs font-normal">
-                    {concept.sourceLanguage} &rarr; {concept.targetLanguage}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {concept.sourceLanguage} &rarr; {concept.targetLanguage}
+                    </Badge>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className={`${getReviewStatus(concept.nextReviewAt).color} size-2 rounded-full inline-block shrink-0`}
+                            aria-label={getReviewStatus(concept.nextReviewAt).label}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {getReviewStatus(concept.nextReviewAt).label}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -347,7 +700,14 @@ export default function ConceptsList() {
                   </Button>
                 </div>
                 <CardTitle className="text-xl leading-tight">
-                  {concept.concept}
+                  <Link
+                    href={`/dashboard/vocabulary/${concept.id}`}
+                    className="underline decoration-muted-foreground/30 underline-offset-4 hover:decoration-foreground/50 transition-colors"
+                    title="View concept details"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {concept.concept}
+                  </Link>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -360,7 +720,16 @@ export default function ConceptsList() {
                 {/* Pronunciation preview (always visible if available) */}
                 {concept.phoneticApproximation && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Volume2 className="size-3.5 shrink-0" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSpeak(concept.id, concept.concept, concept.sourceLanguage);
+                      }}
+                      title="Listen to pronunciation"
+                      className={`inline-flex items-center justify-center shrink-0 rounded p-0.5 transition-colors ${speakingId === concept.id ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <Volume2 className="size-3.5" />
+                    </button>
                     <span className="italic">{concept.phoneticApproximation}</span>
                   </div>
                 )}
@@ -427,6 +796,36 @@ export default function ConceptsList() {
                         <p className="text-sm">{concept.fixedExpression}</p>
                       </div>
                     )}
+
+                    {(() => {
+                      try {
+                        const words = concept.relatedWords ? JSON.parse(concept.relatedWords) as Array<{ word: string; translation: string; relation: string }> : [];
+                        if (words.length === 0) return null;
+                        return (
+                          <div className="space-y-1.5">
+                            <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Related Words</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {words.map((rw, i) => (
+                                <div key={i} className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1 text-sm">
+                                  <span className="font-medium">{rw.word}</span>
+                                  <span className="text-muted-foreground">({rw.translation})</span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-1 py-0 ${
+                                      rw.relation === 'synonym' ? 'border-blue-400 text-blue-600 dark:text-blue-400' :
+                                      rw.relation === 'antonym' ? 'border-amber-400 text-amber-600 dark:text-amber-400' :
+                                      'border-border text-muted-foreground'
+                                    }`}
+                                  >
+                                    {rw.relation}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      } catch { return null; }
+                    })()}
 
                     <ConceptNotes
                       conceptId={concept.id}

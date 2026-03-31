@@ -1,7 +1,7 @@
 import { db } from '../db/index.ts'
-import { and, eq, lte, sql, ne } from 'drizzle-orm'
-import { reviewScheduleTable, conceptsTable } from '../db/schema.ts'
-import type { ReviewSchedule, Concept } from '../db/schema.ts'
+import { and, eq, lte, gte, lt, sql, ne, inArray, isNull, desc, or, isNotNull } from 'drizzle-orm'
+import { reviewScheduleTable, conceptsTable, reviewSessionsTable } from '../db/schema.ts'
+import type { ReviewSchedule, Concept, ReviewSession } from '../db/schema.ts'
 
 const reviewData = {
   async getDueConcepts(
@@ -18,6 +18,35 @@ const reviewData = {
         and(
           eq(reviewScheduleTable.userId, userId),
           lte(reviewScheduleTable.nextReviewAt, now)
+        )
+      )
+      .orderBy(reviewScheduleTable.nextReviewAt)
+      .limit(limit)
+
+    return schedules.map((row) => ({
+      ...row.concepts,
+      schedule: row.review_schedule,
+    }))
+  },
+
+  async getDueConceptsWithContext(
+    userId: number,
+    limit: number = 20
+  ): Promise<(Concept & { schedule: ReviewSchedule })[]> {
+    const now = new Date()
+
+    const schedules = await db
+      .select()
+      .from(reviewScheduleTable)
+      .innerJoin(conceptsTable, eq(reviewScheduleTable.conceptId, conceptsTable.id))
+      .where(
+        and(
+          eq(reviewScheduleTable.userId, userId),
+          lte(reviewScheduleTable.nextReviewAt, now),
+          or(
+            isNotNull(conceptsTable.contextBefore),
+            isNotNull(conceptsTable.contextAfter)
+          )
         )
       )
       .orderBy(reviewScheduleTable.nextReviewAt)
@@ -148,6 +177,101 @@ const reviewData = {
     return rows.map((r) => r.translation)
   },
 
+  async getReviewSchedulesForConcepts(
+    conceptIds: number[]
+  ): Promise<Map<number, { nextReviewAt: Date | null }>> {
+    if (conceptIds.length === 0) return new Map()
+
+    const rows = await db
+      .select({
+        conceptId: reviewScheduleTable.conceptId,
+        nextReviewAt: reviewScheduleTable.nextReviewAt,
+      })
+      .from(reviewScheduleTable)
+      .where(inArray(reviewScheduleTable.conceptId, conceptIds))
+
+    const map = new Map<number, { nextReviewAt: Date | null }>()
+    for (const row of rows) {
+      map.set(row.conceptId, { nextReviewAt: row.nextReviewAt })
+    }
+    return map
+  },
+
+  async getConceptIdsByReviewStatus(
+    userId: number,
+    status: 'overdue' | 'due-today' | 'reviewed' | 'new'
+  ): Promise<number[]> {
+    const now = new Date()
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
+
+    if (status === 'new') {
+      // Concepts with no review_schedule entry
+      const rows = await db
+        .select({ id: conceptsTable.id })
+        .from(conceptsTable)
+        .leftJoin(reviewScheduleTable, eq(conceptsTable.id, reviewScheduleTable.conceptId))
+        .where(
+          and(
+            eq(conceptsTable.userId, userId),
+            isNull(reviewScheduleTable.id)
+          )
+        )
+      return rows.map((r) => r.id)
+    }
+
+    if (status === 'overdue') {
+      const rows = await db
+        .select({ conceptId: reviewScheduleTable.conceptId })
+        .from(reviewScheduleTable)
+        .where(
+          and(
+            eq(reviewScheduleTable.userId, userId),
+            lt(reviewScheduleTable.nextReviewAt, startOfDay)
+          )
+        )
+      return rows.map((r) => r.conceptId)
+    }
+
+    if (status === 'due-today') {
+      const rows = await db
+        .select({ conceptId: reviewScheduleTable.conceptId })
+        .from(reviewScheduleTable)
+        .where(
+          and(
+            eq(reviewScheduleTable.userId, userId),
+            gte(reviewScheduleTable.nextReviewAt, startOfDay),
+            lt(reviewScheduleTable.nextReviewAt, endOfDay)
+          )
+        )
+      return rows.map((r) => r.conceptId)
+    }
+
+    // status === 'reviewed' (up to date: next review is after today)
+    const rows = await db
+      .select({ conceptId: reviewScheduleTable.conceptId })
+      .from(reviewScheduleTable)
+      .where(
+        and(
+          eq(reviewScheduleTable.userId, userId),
+          gte(reviewScheduleTable.nextReviewAt, endOfDay)
+        )
+      )
+    return rows.map((r) => r.conceptId)
+  },
+
+  async getScheduleForConcept(
+    conceptId: number,
+    userId: number
+  ): Promise<ReviewSchedule | undefined> {
+    return db.query.reviewScheduleTable.findFirst({
+      where: and(
+        eq(reviewScheduleTable.conceptId, conceptId),
+        eq(reviewScheduleTable.userId, userId)
+      ),
+    })
+  },
+
   async ensureSchedulesExist(userId: number): Promise<void> {
     // Create review schedules for all concepts that don't have one yet
     await db.execute(sql`
@@ -157,6 +281,55 @@ const reviewData = {
       LEFT JOIN review_schedule rs ON rs.concept_id = c.id
       WHERE c.user_id = ${userId} AND rs.id IS NULL
     `)
+  },
+
+  async saveSession(
+    userId: number,
+    data: {
+      mode: string
+      totalItems: number
+      correctItems: number
+      accuracy: number
+      durationSeconds?: number | null
+    }
+  ): Promise<ReviewSession> {
+    const result = await db
+      .insert(reviewSessionsTable)
+      .values({
+        userId,
+        mode: data.mode,
+        totalItems: data.totalItems,
+        correctItems: data.correctItems,
+        accuracy: data.accuracy,
+        durationSeconds: data.durationSeconds ?? null,
+      })
+      .returning()
+    return result[0]!
+  },
+
+  async getSessionHistory(
+    userId: number,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{ sessions: ReviewSession[]; total: number }> {
+    const [sessions, countResult] = await Promise.all([
+      db
+        .select()
+        .from(reviewSessionsTable)
+        .where(eq(reviewSessionsTable.userId, userId))
+        .orderBy(desc(reviewSessionsTable.completedAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(reviewSessionsTable)
+        .where(eq(reviewSessionsTable.userId, userId)),
+    ])
+
+    return {
+      sessions,
+      total: countResult[0]?.count ?? 0,
+    }
   },
 }
 

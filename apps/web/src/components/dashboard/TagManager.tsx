@@ -281,9 +281,22 @@ export default function TagManager() {
       </CardHeader>
       <CardContent>
         {tags.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-6">
-            No tags yet. Create one to start organizing your vocabulary.
-          </p>
+          <div className="text-center py-12 space-y-4">
+            <div className="flex justify-center">
+              <div className="p-4 rounded-full bg-muted">
+                <Tags className="size-8 text-muted-foreground" />
+              </div>
+            </div>
+            <h3 className="text-lg font-medium">No tags yet</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Tags help you organize vocabulary by topic — try
+              &lsquo;Business&rsquo;, &lsquo;Travel&rsquo;, or &lsquo;Slang&rsquo;.
+            </p>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4 mr-2" />
+              Create Tag
+            </Button>
+          </div>
         ) : (
           <div className="space-y-2">
             {tags.map((tag) => (

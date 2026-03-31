@@ -12,6 +12,9 @@ export const usersTable = pgTable('users', {
   currentStreak: integer('current_streak').notNull().default(0),
   longestStreak: integer('longest_streak').notNull().default(0),
   lastActiveDate: text('last_active_date'),
+  streakFreezes: integer('streak_freezes').notNull().default(0),
+  freezesUsed: integer('freezes_used').notNull().default(0),
+  dailyGoal: integer('daily_goal').notNull().default(10),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -29,8 +32,12 @@ export const conceptsTable = pgTable('concepts', {
   grammarRules: text('grammar_rules'),
   commonness: text('commonness'),
   fixedExpression: text('fixed_expression'),
+  relatedWords: text('related_words'),
   userNotes: text('user_notes'),
   exampleSentence: text('example_sentence'),
+  contextBefore: text('context_before'),
+  contextAfter: text('context_after'),
+  sourceUrl: text('source_url'),
   state: text('state').notNull().default('new'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
@@ -100,6 +107,17 @@ export const dailyActivityTable = pgTable(
   (t) => [unique().on(t.userId, t.date)]
 )
 
+export const reviewSessionsTable = pgTable('review_sessions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  mode: text('mode').notNull(),
+  totalItems: integer('total_items').notNull(),
+  correctItems: integer('correct_items').notNull(),
+  accuracy: integer('accuracy').notNull(),
+  durationSeconds: integer('duration_seconds'),
+  completedAt: timestamp('completed_at').defaultNow().notNull(),
+})
+
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert
 
@@ -112,3 +130,5 @@ export type NewTag = typeof tagsTable.$inferInsert
 export type ReviewSchedule = typeof reviewScheduleTable.$inferSelect
 
 export type DailyActivity = typeof dailyActivityTable.$inferSelect
+
+export type ReviewSession = typeof reviewSessionsTable.$inferSelect

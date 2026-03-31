@@ -132,6 +132,13 @@ export const usersData = {
     return user
   },
 
+  async updateDailyGoal(userId: number, dailyGoal: number): Promise<void> {
+    await db
+      .update(usersTable)
+      .set({ dailyGoal })
+      .where(eq(usersTable.id, userId))
+  },
+
   async deleteUser(supabaseId: string): Promise<Array<User>> {
     try {
       // Delete from Supabase Auth first (requires admin access)

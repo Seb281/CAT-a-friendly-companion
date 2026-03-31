@@ -32,6 +32,11 @@ export async function statsRoutes(
           longestStreak: 0,
           avgAccuracy: 0,
           conceptsByState: {},
+          streakFreezes: 0,
+          freezesUsed: 0,
+          dailyGoal: 10,
+          todayReviews: 0,
+          todayGoalMet: false,
         })
       }
 

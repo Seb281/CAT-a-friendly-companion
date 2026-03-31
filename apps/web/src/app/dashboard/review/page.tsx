@@ -16,9 +16,12 @@ import {
   BookOpen,
   ListChecks,
   Keyboard,
+  FileText,
   Loader2,
   GraduationCap,
+  PartyPopper,
 } from "lucide-react";
+import Link from "next/link";
 
 const MODES = [
   {
@@ -42,6 +45,13 @@ const MODES = [
     description:
       "Type the translation from memory. Tests active recall and spelling.",
   },
+  {
+    value: "contextual-recall",
+    label: "Context Recall",
+    icon: FileText,
+    description:
+      "See the original sentence with the word removed. Fill in the blank from memory.",
+  },
 ] as const;
 
 export default function ReviewPage() {
@@ -50,13 +60,14 @@ export default function ReviewPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [totalConcepts, setTotalConcepts] = useState<number | null>(null);
   const [selectedMode, setSelectedMode] = useState<string>("flashcard");
   const [selectedCount, setSelectedCount] = useState("10");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function fetchDueCount() {
+    async function fetchReviewData() {
       try {
         const {
           data: { session },
@@ -66,23 +77,32 @@ export default function ReviewPage() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/review/due?countOnly=true`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const headers = { Authorization: `Bearer ${session.access_token}` };
+
+        const [dueRes, statsRes] = await Promise.all([
+          fetch(`${API_URL}/review/due?countOnly=true`, { headers }),
+          fetch(`${API_URL}/stats/overview`, { headers }),
+        ]);
+
+        if (dueRes.ok) {
+          const data = await dueRes.json();
           setDueCount(data.dueCount);
         } else {
           setError(true);
         }
+
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setTotalConcepts(data.totalConcepts ?? 0);
+        }
       } catch (err) {
-        console.error("Failed to fetch due count:", err);
+        console.error("Failed to fetch review data:", err);
         setError(true);
       } finally {
         setLoading(false);
       }
     }
-    fetchDueCount();
+    fetchReviewData();
   }, [supabase, API_URL]);
 
   function handleStart() {
@@ -108,65 +128,88 @@ export default function ReviewPage() {
         </div>
       )}
 
-      {/* Due count card */}
-      <Card>
-        <CardContent className="flex items-center gap-4 pt-6">
-          <div className="p-3 rounded-lg bg-secondary">
-            <GraduationCap className="size-6 text-muted-foreground" />
+      {/* Due count card or empty state */}
+      {!loading && totalConcepts !== null && totalConcepts < 5 ? (
+        <div className="text-center py-12 space-y-4">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-muted">
+              <BookOpen className="size-8 text-muted-foreground" />
+            </div>
           </div>
-          <div className="flex-1">
-            {loading ? (
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            ) : dueCount === 0 ? (
-              <>
-                <p className="font-semibold">All caught up!</p>
-                <p className="text-sm text-muted-foreground">
-                  No items due for review right now. Come back later.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-semibold">
-                  {dueCount} {dueCount === 1 ? "item" : "items"} due for review
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Start a session to practice your vocabulary.
-                </p>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <h3 className="text-lg font-medium">Not enough vocabulary yet</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Save at least 5 words to unlock review mode. Start by translating text with the extension.
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard">Go to Vocabulary</Link>
+          </Button>
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="flex items-center gap-4 pt-6">
+            <div className="p-3 rounded-lg bg-secondary">
+              {dueCount === 0 ? (
+                <PartyPopper className="size-6 text-muted-foreground" />
+              ) : (
+                <GraduationCap className="size-6 text-muted-foreground" />
+              )}
+            </div>
+            <div className="flex-1">
+              {loading ? (
+                <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              ) : dueCount === 0 ? (
+                <>
+                  <p className="font-semibold">All caught up!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your next review is scheduled. Keep translating to add more words.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold">
+                    {dueCount} {dueCount === 1 ? "item" : "items"} due for review
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Start a session to practice your vocabulary.
+                  </p>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Mode selector */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {MODES.map((mode) => (
-          <Card
-            key={mode.value}
-            className={`cursor-pointer transition-all ${
-              selectedMode === mode.value
-                ? "bg-primary/10 ring-1 ring-primary/50"
-                : "hover:bg-card/80"
-            } ${dueCount === 0 ? "opacity-50 pointer-events-none" : ""}`}
-            onClick={() => setSelectedMode(mode.value)}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <mode.icon className="size-5 text-muted-foreground" />
-                {mode.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {mode.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Mode selector — hidden when user has fewer than 5 concepts */}
+      {(totalConcepts === null || totalConcepts >= 5) && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {MODES.map((mode) => (
+            <Card
+              key={mode.value}
+              className={`cursor-pointer transition-all ${
+                selectedMode === mode.value
+                  ? "bg-primary/10 ring-1 ring-primary/50"
+                  : "hover:bg-card/80"
+              } ${dueCount === 0 ? "opacity-50 pointer-events-none" : ""}`}
+              onClick={() => setSelectedMode(mode.value)}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <mode.icon className="size-5 text-muted-foreground" />
+                  {mode.label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {mode.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Count & start */}
-      {dueCount !== null && dueCount > 0 && (
+      {dueCount !== null && dueCount > 0 && (totalConcepts === null || totalConcepts >= 5) && (
         <div className="flex items-center gap-3 justify-end">
           <span className="text-sm text-muted-foreground">Items:</span>
           <Select value={selectedCount} onValueChange={setSelectedCount}>

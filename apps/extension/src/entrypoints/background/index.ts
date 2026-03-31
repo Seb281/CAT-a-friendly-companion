@@ -3,9 +3,10 @@ import saveConcept from "./helpers/handleSaveConcept"
 import handleTranslation from "./helpers/handleTranslation"
 import lookupConcept from "./helpers/handleLookupConcept"
 import updateConcept from "./helpers/handleUpdateConcept"
-import { isAuthenticated, supabase } from "./helpers/supabaseAuth"
+import { getSupabaseToken, isAuthenticated, supabase } from "./helpers/supabaseAuth"
 import { fetchUserSettings, saveUserSettings, type UserSettings } from "./helpers/handleUserSettings"
 
+const BASE_URL = import.meta.env.VITE_BASE_URL
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 initSentry({ context: "background", isServiceWorker: true })
@@ -14,6 +15,86 @@ export default defineBackground(() => {
 
   // Flag to prevent infinite sync loops when setting session from dashboard
   let _isSyncingFromDashboard = false
+
+  // --- Review Badge ---
+
+  async function updateBadge() {
+    const token = await getSupabaseToken()
+    if (!token) {
+      chrome.action.setBadgeText({ text: '' })
+      return
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/review/due?countOnly=true`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) {
+        chrome.action.setBadgeText({ text: '' })
+        return
+      }
+      const { dueCount } = await response.json() as { dueCount: number }
+      chrome.action.setBadgeText({ text: dueCount > 0 ? String(dueCount) : '' })
+      chrome.action.setBadgeBackgroundColor({ color: '#334155' })
+    } catch {
+      chrome.action.setBadgeText({ text: '' })
+    }
+  }
+
+  // --- Review Reminders (Browser Notifications) ---
+
+  async function checkReviewReminder() {
+    const { reminderEnabled, reminderHour } = await chrome.storage.sync.get(['reminderEnabled', 'reminderHour']) as {
+      reminderEnabled?: boolean
+      reminderHour?: number
+    }
+
+    if (!reminderEnabled) return
+
+    const currentHour = new Date().getHours()
+    if (currentHour !== reminderHour) return
+
+    const token = await getSupabaseToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${BASE_URL}/review/due?countOnly=true`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) return
+      const { dueCount } = await response.json() as { dueCount: number }
+
+      if (dueCount > 0) {
+        chrome.notifications.create('review-reminder', {
+          type: 'basic',
+          iconUrl: 'icon/icon-128.png',
+          title: 'Time to review!',
+          message: `You have ${dueCount} words waiting.`,
+        })
+      }
+    } catch { /* silently ignore */ }
+  }
+
+  // Open dashboard review page when notification is clicked
+  chrome.notifications.onClicked.addListener((notificationId) => {
+    if (notificationId === 'review-reminder') {
+      chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/review` })
+      chrome.notifications.clear(notificationId)
+    }
+  })
+
+  // --- Alarms ---
+
+  chrome.alarms.create('update-badge', { periodInMinutes: 30 })
+  chrome.alarms.create('review-reminder', { periodInMinutes: 60 })
+
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'update-badge') {
+      updateBadge()
+    } else if (alarm.name === 'review-reminder') {
+      checkReviewReminder()
+    }
+  })
 
   // --- Context Menu Setup ---
 
@@ -27,8 +108,22 @@ export default defineBackground(() => {
     })
   }
 
-  chrome.runtime.onInstalled.addListener(setupContextMenu)
-  chrome.runtime.onStartup.addListener(setupContextMenu)
+  // --- Side Panel Setup ---
+
+  function setupSidePanel() {
+    chrome.sidePanel.setOptions({ path: 'sidepanel.html' })
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+  }
+
+  chrome.runtime.onInstalled.addListener(() => {
+    setupContextMenu()
+    setupSidePanel()
+    updateBadge()
+  })
+  chrome.runtime.onStartup.addListener(() => {
+    setupContextMenu()
+    updateBadge()
+  })
 
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId !== 'translate-selection' || !tab?.id || !info.selectionText) return
@@ -147,7 +242,7 @@ type TranslateResponse = {
 chrome.runtime.onMessage.addListener(
   (
     message: TranslateMessage,
-    _: chrome.runtime.MessageSender,
+    sender: chrome.runtime.MessageSender,
     sendResponse: (response: TranslateResponse) => void
   ): boolean => {
 
@@ -170,6 +265,8 @@ chrome.runtime.onMessage.addListener(
                 },
                 fromCache: true,
                 cachedConceptId: cached.id,
+                targetLanguage,
+                sourceLanguage,
               }
             }
           }
@@ -180,10 +277,30 @@ chrome.runtime.onMessage.addListener(
             sourceLanguage,
             personalContext
           )
-          return { translateObject, fromCache: false }
+          return { translateObject, fromCache: false, targetLanguage, sourceLanguage }
         })
-        .then(({ translateObject, fromCache, cachedConceptId }) => {
+        .then(({ translateObject, fromCache, cachedConceptId, targetLanguage, sourceLanguage }) => {
           sendResponse({ success: true, translateObject, fromCache, cachedConceptId })
+
+          // Push to translation history in session storage
+          const translationObj = translateObject as {
+            contextualTranslation?: string
+            language?: string
+          }
+          const historyItem = {
+            concept: message.concept || message.text,
+            translation: translationObj.contextualTranslation || '',
+            sourceLanguage: translationObj.language || sourceLanguage || '',
+            targetLanguage: targetLanguage || '',
+            url: sender.tab?.url ?? '',
+            timestamp: Date.now(),
+          }
+          chrome.storage.session.get('translationHistory', (result) => {
+            const history = (result.translationHistory || []) as typeof historyItem[]
+            history.unshift(historyItem)
+            if (history.length > 50) history.length = 50
+            chrome.storage.session.set({ translationHistory: history })
+          })
         })
         .catch((error) => {
           sendResponse({ success: false, error: error.message })
@@ -216,6 +333,7 @@ chrome.runtime.onMessage.addListener(
             sendResponse({ success: true, alreadySaved: true, concept: result.concept })
           } else {
             sendResponse({ success: true, concept: result.concept })
+            updateBadge()
           }
         })
         .catch((error) => {
@@ -277,6 +395,139 @@ chrome.runtime.onMessage.addListener(
       saveUserSettings(message.settings)
         .then((settings) => {
           sendResponse({ success: true, settings })
+        })
+        .catch((error) => {
+          sendResponse({ success: false, error: error.message })
+        })
+      return true
+    }
+    return false
+  }
+)
+
+// --- Review / Quiz Handlers ---
+
+chrome.runtime.onMessage.addListener(
+  (message: { action: string }, _, sendResponse) => {
+    if (message.action === "getDueCount") {
+      getSupabaseToken()
+        .then(async (token) => {
+          if (!token) {
+            sendResponse({ dueCount: 0 })
+            return
+          }
+          const response = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/review/due?countOnly=true`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+          if (!response.ok) {
+            sendResponse({ dueCount: 0 })
+            return
+          }
+          const data = await response.json()
+          sendResponse({ dueCount: data.dueCount ?? 0 })
+        })
+        .catch(() => {
+          sendResponse({ dueCount: 0 })
+        })
+      return true
+    }
+    return false
+  }
+)
+
+chrome.runtime.onMessage.addListener(
+  (message: { action: string; count?: number }, _, sendResponse) => {
+    if (message.action === "getQuizItems") {
+      const count = message.count ?? 5
+      getSupabaseToken()
+        .then(async (token) => {
+          if (!token) {
+            sendResponse({ items: [] })
+            return
+          }
+          const response = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/quiz/generate?type=flashcard&count=${count}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+          if (!response.ok) {
+            sendResponse({ items: [] })
+            return
+          }
+          const data = await response.json()
+          sendResponse({ items: data.items ?? data })
+        })
+        .catch(() => {
+          sendResponse({ items: [] })
+        })
+      return true
+    }
+    return false
+  }
+)
+
+chrome.runtime.onMessage.addListener(
+  (message: { action: string; conceptId: number; quality: number }, _, sendResponse) => {
+    if (message.action === "submitReview") {
+      getSupabaseToken()
+        .then(async (token) => {
+          if (!token) {
+            sendResponse({ success: false, error: "Not authenticated" })
+            return
+          }
+          const response = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/review/${message.conceptId}/result`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ quality: message.quality }),
+            }
+          )
+          if (!response.ok) {
+            sendResponse({ success: false, error: response.statusText })
+            return
+          }
+          const data = await response.json()
+          sendResponse({ success: true, ...data })
+        })
+        .catch((error) => {
+          sendResponse({ success: false, error: error.message })
+        })
+      return true
+    }
+    return false
+  }
+)
+
+// Listener to fetch saved concepts from API (for side panel)
+chrome.runtime.onMessage.addListener(
+  (message: { action: string; limit?: number }, _, sendResponse) => {
+    if (message.action === "fetchSavedConcepts") {
+      const limit = message.limit || 10
+      getSupabaseToken()
+        .then(async (token) => {
+          if (!token) {
+            sendResponse({ success: false, error: "Not authenticated" })
+            return
+          }
+          const response = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/saved-concepts?limit=${limit}&sortBy=date&sortOrder=desc`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+          if (!response.ok) {
+            throw new Error(`Failed to fetch saved concepts: ${response.statusText}`)
+          }
+          const data = await response.json()
+          sendResponse({ success: true, concepts: data.concepts || data })
         })
         .catch((error) => {
           sendResponse({ success: false, error: error.message })

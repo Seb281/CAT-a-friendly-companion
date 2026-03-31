@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Flame, Target, Trophy, BookOpen, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BarChart3, Flame, Target, Trophy, BookOpen, Loader2, TrendingUp } from "lucide-react";
+import Link from "next/link";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
+import AccuracyChart from "@/components/dashboard/AccuracyChart";
+import ShareCard from "@/components/dashboard/ShareCard";
 
 type OverviewStats = {
   totalConcepts: number;
@@ -19,6 +23,17 @@ type ActivityDay = {
   conceptsAdded: number;
   reviewsCompleted: number;
   correctReviews: number;
+};
+
+type ReviewSession = {
+  id: string;
+  userId: string;
+  mode: string;
+  totalItems: number;
+  correctItems: number;
+  accuracy: number;
+  durationSeconds: number;
+  completedAt: string;
 };
 
 const STATE_COLORS: Record<string, string> = {
@@ -41,6 +56,7 @@ export default function ProgressPage() {
 
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [activity, setActivity] = useState<ActivityDay[]>([]);
+  const [sessions, setSessions] = useState<ReviewSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -57,9 +73,10 @@ export default function ProgressPage() {
 
         const headers = { Authorization: `Bearer ${session.access_token}` };
 
-        const [overviewRes, activityRes] = await Promise.all([
+        const [overviewRes, activityRes, sessionsRes] = await Promise.all([
           fetch(`${API_URL}/stats/overview`, { headers }),
           fetch(`${API_URL}/stats/activity?days=90`, { headers }),
+          fetch(`${API_URL}/review/sessions?limit=30`, { headers }),
         ]);
 
         if (overviewRes.ok) {
@@ -72,6 +89,10 @@ export default function ProgressPage() {
           setActivity(data.activity);
         } else {
           setError(true);
+        }
+        if (sessionsRes.ok) {
+          const data = await sessionsRes.json();
+          setSessions(data.sessions ?? []);
         }
       } catch (err) {
         console.error("Failed to fetch stats:", err);
@@ -96,9 +117,29 @@ export default function ProgressPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
-        <p className="text-muted-foreground">Track your learning journey.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
+          <p className="text-muted-foreground">Track your learning journey.</p>
+        </div>
+        {overview && (
+          <ShareCard
+            totalWords={overview.totalConcepts}
+            masteredCount={overview.conceptsByState?.mastered ?? 0}
+            accuracy={overview.avgAccuracy}
+            streak={overview.currentStreak}
+            distribution={
+              overview.conceptsByState
+                ? {
+                    new: overview.conceptsByState.new ?? 0,
+                    learning: overview.conceptsByState.learning ?? 0,
+                    familiar: overview.conceptsByState.familiar ?? 0,
+                    mastered: overview.conceptsByState.mastered ?? 0,
+                  }
+                : undefined
+            }
+          />
+        )}
       </div>
 
       {error && (
@@ -106,6 +147,24 @@ export default function ProgressPage() {
           Something went wrong loading data. Check your connection and try refreshing.
         </div>
       )}
+
+      {overview && overview.totalConcepts === 0 ? (
+        <div className="text-center py-12 space-y-4">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-muted">
+              <BarChart3 className="size-8 text-muted-foreground" />
+            </div>
+          </div>
+          <h3 className="text-lg font-medium">No progress to show yet</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Complete your first review session to start tracking progress.
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/review">Start a Review</Link>
+          </Button>
+        </div>
+      ) : (
+      <>
 
       {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -161,6 +220,19 @@ export default function ProgressPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Accuracy trend chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="size-5 text-muted-foreground" />
+            Accuracy Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AccuracyChart sessions={sessions} />
+        </CardContent>
+      </Card>
 
       {/* Vocabulary breakdown */}
       {totalForBar > 0 && (
@@ -220,6 +292,9 @@ export default function ProgressPage() {
           <ActivityHeatmap activity={activity} days={90} />
         </CardContent>
       </Card>
+
+      </>
+      )}
     </div>
   );
 }

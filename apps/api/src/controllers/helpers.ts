@@ -45,6 +45,8 @@ export function promptBuilder(
     '"grammarRules": Relevant grammar (part of speech, agreement, irregularities).'
   const instructionCommonness: string =
     '"commonness": Frequency in everyday speech (RULE: ≤5 words).'
+  const instructionRelatedWords: string =
+    '"relatedWords": Array of up to 5 related words as JSON: [{"word": "...", "translation": "...", "relation": "synonym|antonym|family"}]. Words in source language, translations in target language. "family" means same word family (e.g. noun/verb/adjective forms). Return empty array [] if none.'
 
   if (selectionLength === 1) {
     if (textLengh === selectionLength) {
@@ -55,6 +57,7 @@ export function promptBuilder(
         '',
         '',
         instructionCommonness,
+        instructionRelatedWords,
       ]
     } else {
       promptAdjustment = [
@@ -64,6 +67,7 @@ export function promptBuilder(
         commonUsage,
         instructionGrammar,
         instructionCommonness,
+        instructionRelatedWords,
       ]
     }
   } else if (selectionLength < 6) {
@@ -75,6 +79,7 @@ export function promptBuilder(
         '',
         instructionGrammar,
         instructionCommonness,
+        instructionRelatedWords,
       ]
     } else {
       promptAdjustment = [
@@ -84,10 +89,11 @@ export function promptBuilder(
         commonUsage,
         instructionGrammar,
         instructionCommonness,
+        instructionRelatedWords,
       ]
     }
   } else if (selectionLength >= 6) {
-    promptAdjustment = ['do the following', '', 'text', '', '', '']
+    promptAdjustment = ['do the following', '', 'text', '', '', '', '']
   } else {
     throw new Error('No selection identified')
   }
@@ -99,6 +105,7 @@ export function promptBuilder(
   const optField3 = promptAdjustment[3] ? `\n${promptAdjustment[3]}` : ''
   const optField4 = promptAdjustment[4] ? `\n${promptAdjustment[4]}` : ''
   const optField5 = promptAdjustment[5] ? `\n${promptAdjustment[5]}` : ''
+  const optField6 = promptAdjustment[6] ? `\n${promptAdjustment[6]}` : ''
   const personalCtx = personalContext
     ? `\nIf it makes sense, take into account this context about me: ${personalContext}.`
     : ''
@@ -110,7 +117,7 @@ Translate to ${resolvedTarget} and return a JSON object with these keys. Write a
 
 "language": ${lang}${optField1}
 "contextualTranslation": Best ${resolvedTarget} translation of the marked ${promptAdjustment[2]} in this context.
-"phoneticApproximation": ${resolvedTarget}-sound phonetic approximation.${optField3}${optField4}${optField5}${personalCtx}
+"phoneticApproximation": ${resolvedTarget}-sound phonetic approximation.${optField3}${optField4}${optField5}${optField6}${personalCtx}
 
 Text: ${text}`
 
