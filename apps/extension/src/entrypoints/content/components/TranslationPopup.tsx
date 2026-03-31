@@ -12,6 +12,7 @@ import {
   AlignLeft,
   BarChart2,
 } from 'lucide-react'
+import { languageToBCP47 } from '@/utils/languageCodes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -73,6 +74,21 @@ export default function TranslationPopup({
   const [retranslated, setRetranslated] = useState(false)
   const [translationError, setTranslationError] = useState(false)
   const [showContext, setShowContext] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+
+  function handleSpeak() {
+    if (isSpeaking) return
+    const utterance = new SpeechSynthesisUtterance(selection)
+    const langCode = languageToBCP47[translation.language]
+    if (langCode) {
+      utterance.lang = langCode
+    }
+    setIsSpeaking(true)
+    utterance.onend = () => setIsSpeaking(false)
+    utterance.onerror = () => setIsSpeaking(false)
+    speechSynthesis.speak(utterance)
+    setTimeout(() => setIsSpeaking(false), 500)
+  }
 
   useEffect(() => {
     // Send a message to the Service Worker to check the status
@@ -516,7 +532,10 @@ export default function TranslationPopup({
                 {translation.phoneticApproximation && (
                   <div className='space-y-1.5'>
                     <div className='flex items-center gap-2'>
-                      <Volume2 className='h-4 w-4 text-muted-foreground' />
+                      <Volume2
+                        className={`h-4 w-4 cursor-pointer transition-colors ${isSpeaking ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        onClick={handleSpeak}
+                      />
                       <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                         Pronunciation
                       </span>

@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
+import { languageToBCP47 } from "@/lib/languageCodes";
 import ConceptNotes from "./ConceptNotes";
 import MasteryBadge from "./MasteryBadge";
 import TagBadge from "./TagBadge";
@@ -80,6 +81,21 @@ export default function ConceptsList() {
   // Distinct language pairs for filter dropdown
   const [languagePairs, setLanguagePairs] = useState<string[]>([]);
   const [error, setError] = useState(false);
+  const [speakingId, setSpeakingId] = useState<number | null>(null);
+
+  function handleSpeak(conceptId: number, text: string, sourceLanguage: string) {
+    if (speakingId === conceptId) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    const langCode = languageToBCP47[sourceLanguage];
+    if (langCode) {
+      utterance.lang = langCode;
+    }
+    setSpeakingId(conceptId);
+    utterance.onend = () => setSpeakingId(null);
+    utterance.onerror = () => setSpeakingId(null);
+    speechSynthesis.speak(utterance);
+    setTimeout(() => setSpeakingId(null), 500);
+  }
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -360,7 +376,13 @@ export default function ConceptsList() {
                 {/* Pronunciation preview (always visible if available) */}
                 {concept.phoneticApproximation && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Volume2 className="size-3.5 shrink-0" />
+                    <Volume2
+                      className={`size-3.5 shrink-0 cursor-pointer transition-colors ${speakingId === concept.id ? "text-primary" : "hover:text-foreground"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSpeak(concept.id, concept.concept, concept.sourceLanguage);
+                      }}
+                    />
                     <span className="italic">{concept.phoneticApproximation}</span>
                   </div>
                 )}
