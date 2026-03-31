@@ -314,7 +314,9 @@ export default function ConceptsList() {
         <div className="text-center py-12 space-y-4">
           <div className="flex justify-center">
             <div className="p-4 rounded-full bg-muted">
-              <BookOpen className="size-8 text-muted-foreground" />
+              {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all"
+                ? <Search className="size-8 text-muted-foreground" />
+                : <BookOpen className="size-8 text-muted-foreground" />}
             </div>
           </div>
           <h3 className="text-lg font-medium">
@@ -324,9 +326,26 @@ export default function ConceptsList() {
           </h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
             {debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all"
-              ? "Try adjusting your search or filters."
-              : "Start using the Context Translator extension to save words and phrases you want to learn."}
+              ? "No matching concepts. Try a different search term or clear your filters."
+              : "Install the browser extension, select any text on a webpage, and right-click \u2192 Translate to start building your vocabulary."}
           </p>
+          {(debouncedSearch || languageFilter !== "all" || stateFilter !== "all" || tagFilter !== "all") && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setDebouncedSearch("");
+                setLanguageFilter("all");
+                setStateFilter("all");
+                setTagFilter("all");
+                setSortBy("date");
+                setSortOrder("desc");
+                setPage(1);
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

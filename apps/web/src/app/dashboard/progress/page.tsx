@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BarChart3, Flame, Target, Trophy, BookOpen, Loader2 } from "lucide-react";
+import Link from "next/link";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 
 type OverviewStats = {
@@ -106,6 +108,24 @@ export default function ProgressPage() {
           Something went wrong loading data. Check your connection and try refreshing.
         </div>
       )}
+
+      {overview && overview.totalConcepts === 0 ? (
+        <div className="text-center py-12 space-y-4">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-muted">
+              <BarChart3 className="size-8 text-muted-foreground" />
+            </div>
+          </div>
+          <h3 className="text-lg font-medium">No progress to show yet</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Complete your first review session to start tracking progress.
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/review">Start a Review</Link>
+          </Button>
+        </div>
+      ) : (
+      <>
 
       {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -220,6 +240,9 @@ export default function ProgressPage() {
           <ActivityHeatmap activity={activity} days={90} />
         </CardContent>
       </Card>
+
+      </>
+      )}
     </div>
   );
 }
