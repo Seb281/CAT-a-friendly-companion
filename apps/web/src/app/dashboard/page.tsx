@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   BookOpen,
@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 
 export default function DashboardHome() {
   const supabase = createClient();
@@ -30,6 +31,18 @@ export default function DashboardHome() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true); // default true to avoid flash
+
+  useEffect(() => {
+    setOnboardingDismissed(
+      localStorage.getItem("onboarding-dismissed") === "true"
+    );
+  }, []);
+
+  const handleDismissOnboarding = useCallback(() => {
+    localStorage.setItem("onboarding-dismissed", "true");
+    setOnboardingDismissed(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -78,6 +91,13 @@ export default function DashboardHome() {
     fetchData();
   }, [supabase, API_URL]);
 
+  const totalConcepts = overview?.totalConcepts ?? 0;
+  const totalReviewed = stats?.totalReviewed ?? 0;
+  const allOnboardingComplete =
+    totalConcepts > 0 && totalReviewed > 0;
+  const showOnboarding =
+    !loading && !onboardingDismissed && !allOnboardingComplete;
+
   return (
     <div className="space-y-6">
       <div>
@@ -93,102 +113,112 @@ export default function DashboardHome() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Due for Review */}
-        <Card className="md:col-span-2 lg:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="size-5 text-muted-foreground" />
-              Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            ) : dueCount === 0 ? (
-              <p className="text-muted-foreground mb-4">
-                All caught up! No items due for review.
-              </p>
-            ) : (
-              <p className="text-muted-foreground mb-4">
-                You have{" "}
-                <span className="font-semibold text-foreground">
-                  {dueCount}
-                </span>{" "}
-                {dueCount === 1 ? "item" : "items"} ready for review.
-              </p>
-            )}
-            <Button asChild>
-              <Link href="/dashboard/review">
-                {dueCount && dueCount > 0 ? "Start Review" : "Go to Review"}
-                <ArrowRight className="size-4 ml-2" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+      {showOnboarding ? (
+        <OnboardingChecklist
+          totalConcepts={totalConcepts}
+          totalReviewed={totalReviewed}
+          onDismiss={handleDismissOnboarding}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Due for Review */}
+            <Card className="md:col-span-2 lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="size-5 text-muted-foreground" />
+                  Review
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                ) : dueCount === 0 ? (
+                  <p className="text-muted-foreground mb-4">
+                    All caught up! No items due for review.
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground mb-4">
+                    You have{" "}
+                    <span className="font-semibold text-foreground">
+                      {dueCount}
+                    </span>{" "}
+                    {dueCount === 1 ? "item" : "items"} ready for review.
+                  </p>
+                )}
+                <Button asChild>
+                  <Link href="/dashboard/review">
+                    {dueCount && dueCount > 0 ? "Start Review" : "Go to Review"}
+                    <ArrowRight className="size-4 ml-2" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
 
-        {/* Quick Stats */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="size-5 text-muted-foreground" />
-              Quick Stats
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Reviews</p>
-                <p className="text-3xl font-bold tracking-tighter">
-                  {loading ? "--" : (stats?.totalReviewed ?? 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Accuracy</p>
-                <p className="text-3xl font-bold tracking-tighter">
-                  {loading ? "--" : `${stats?.avgAccuracy ?? 0}%`}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Due Now</p>
-                <p className="text-3xl font-bold tracking-tighter">
-                  {loading ? "--" : (dueCount ?? 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Streak</p>
-                <p className="text-3xl font-bold tracking-tighter">
-                  {loading ? "--" : (overview?.currentStreak ?? 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Words placeholder */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="size-5 text-muted-foreground" />
-              Recent Words
-            </CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard/vocabulary">
-                View all
-                <ArrowRight className="size-4 ml-1" />
-              </Link>
-            </Button>
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="size-5 text-muted-foreground" />
+                  Quick Stats
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Reviews</p>
+                    <p className="text-3xl font-bold tracking-tighter">
+                      {loading ? "--" : (stats?.totalReviewed ?? 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Accuracy</p>
+                    <p className="text-3xl font-bold tracking-tighter">
+                      {loading ? "--" : `${stats?.avgAccuracy ?? 0}%`}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Due Now</p>
+                    <p className="text-3xl font-bold tracking-tighter">
+                      {loading ? "--" : (dueCount ?? 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Streak</p>
+                    <p className="text-3xl font-bold tracking-tighter">
+                      {loading ? "--" : (overview?.currentStreak ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Your recently saved words will appear here. Use the extension to
-            translate and save new vocabulary.
-          </p>
-        </CardContent>
-      </Card>
+
+          {/* Recent Words placeholder */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="size-5 text-muted-foreground" />
+                  Recent Words
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/dashboard/vocabulary">
+                    View all
+                    <ArrowRight className="size-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Your recently saved words will appear here. Use the extension to
+                translate and save new vocabulary.
+              </p>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
