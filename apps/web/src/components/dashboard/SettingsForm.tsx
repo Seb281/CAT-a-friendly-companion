@@ -84,6 +84,10 @@ export default function SettingsForm() {
           if (data.maskedApiKey) {
             setMaskedApiKey(data.maskedApiKey);
           }
+          // Sync theme from API (source of truth)
+          if (data.theme && data.theme !== theme) {
+            setTheme(data.theme);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch settings:", error);
@@ -149,6 +153,22 @@ export default function SettingsForm() {
     window.postMessage({ type: "REMOVE_ALLOWED_SITE", pattern }, window.location.origin);
   }
 
+  async function handleThemeChange(newTheme: string) {
+    setTheme(newTheme);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      fetch(`${API_URL}/user/settings`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ theme: newTheme }),
+      }).catch(console.error);
+    } catch {}
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -165,6 +185,7 @@ export default function SettingsForm() {
         personalContext,
         preferredProvider,
         dailyGoal,
+        theme,
       };
 
       // Only send API key if user typed a new one
@@ -228,7 +249,7 @@ export default function SettingsForm() {
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => setTheme(option.value)}
+                  onClick={() => handleThemeChange(option.value)}
                   className={`flex flex-col items-center gap-2 rounded-lg p-4 transition-colors ${
                     theme === option.value
                       ? "bg-primary/15 text-foreground ring-1 ring-primary/50"

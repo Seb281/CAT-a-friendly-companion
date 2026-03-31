@@ -8,12 +8,30 @@ initSentry({ context: "sidepanel" })
 
 const mq = window.matchMedia("(prefers-color-scheme: dark)")
 
-function applyTheme(dark: boolean) {
-  document.documentElement.classList.toggle("dark", dark)
+function applyTheme(themePref: string) {
+  if (themePref === "dark") {
+    document.documentElement.classList.add("dark")
+  } else if (themePref === "light") {
+    document.documentElement.classList.remove("dark")
+  } else {
+    // system
+    document.documentElement.classList.toggle("dark", mq.matches)
+  }
 }
 
-applyTheme(mq.matches)
-mq.addEventListener("change", (e) => applyTheme(e.matches))
+// Read persisted theme from storage, fallback to system preference
+chrome.storage.sync.get(["theme"], (result) => {
+  applyTheme(result.theme || "system")
+})
+
+mq.addEventListener("change", () => {
+  // Re-apply only if theme is "system"
+  chrome.storage.sync.get(["theme"], (result) => {
+    if (!result.theme || result.theme === "system") {
+      applyTheme("system")
+    }
+  })
+})
 
 const root = createRoot(document.getElementById("root")!)
 root.render(

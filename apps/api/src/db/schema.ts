@@ -15,6 +15,7 @@ export const usersTable = pgTable('users', {
   streakFreezes: integer('streak_freezes').notNull().default(0),
   freezesUsed: integer('freezes_used').notNull().default(0),
   dailyGoal: integer('daily_goal').notNull().default(10),
+  theme: text('theme').default('system'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -117,6 +118,16 @@ export const reviewSessionsTable = pgTable('review_sessions', {
   durationSeconds: integer('duration_seconds'),
   completedAt: timestamp('completed_at').defaultNow().notNull(),
 })
+
+export const feedbackTable = pgTable('feedback', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  category: text('category').notNull(),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export type Feedback = typeof feedbackTable.$inferSelect
 
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert

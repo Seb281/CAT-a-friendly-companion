@@ -5,6 +5,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 export type UserSettings = {
   targetLanguage: string | null
   personalContext: string | null
+  theme?: string | null
 }
 
 export async function fetchUserSettings(): Promise<UserSettings> {

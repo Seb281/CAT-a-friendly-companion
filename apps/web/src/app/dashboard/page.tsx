@@ -61,18 +61,32 @@ export default function DashboardHome() {
           return;
         }
 
-        const fullName = session.user?.user_metadata?.full_name ?? session.user?.user_metadata?.name;
-        if (fullName) {
-          setUserName(fullName.split(" ")[0]);
-        }
-
         const headers = { Authorization: `Bearer ${session.access_token}` };
 
-        const [dueRes, statsRes, overviewRes] = await Promise.all([
+        const [dueRes, statsRes, overviewRes, settingsRes] = await Promise.all([
           fetch(`${API_URL}/review/due?countOnly=true`, { headers }),
           fetch(`${API_URL}/review/stats`, { headers }),
           fetch(`${API_URL}/stats/overview`, { headers }),
+          fetch(`${API_URL}/user/settings`, { headers }),
         ]);
+
+        // Prefer DB name (updated via settings) over auth metadata
+        let resolvedName: string | null = null;
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (settingsData.name) {
+            resolvedName = settingsData.name.split(" ")[0];
+          }
+        }
+        if (!resolvedName) {
+          const fullName = session.user?.user_metadata?.full_name ?? session.user?.user_metadata?.name;
+          if (fullName) {
+            resolvedName = fullName.split(" ")[0];
+          }
+        }
+        if (resolvedName) {
+          setUserName(resolvedName);
+        }
 
         let statsData: { totalReviewed: number; dueNow: number; avgAccuracy: number } | null = null;
         let overviewData: { totalConcepts: number; currentStreak: number; longestStreak: number; conceptsByState?: { new?: number; learning?: number; familiar?: number; mastered?: number } } | null = null;

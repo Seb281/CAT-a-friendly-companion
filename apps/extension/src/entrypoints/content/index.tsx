@@ -22,9 +22,23 @@ export default defineContentScript({
 
     let activeContainer: HTMLDivElement | null = null
     const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    let storedThemePref: string = "system"
 
-    mq.addEventListener("change", (e) => {
-      if (activeContainer) activeContainer.classList.toggle("dark", e.matches)
+    // Load theme preference from storage
+    chrome.storage.sync.get(["theme"], (result) => {
+      storedThemePref = result.theme || "system"
+    })
+
+    function resolveIsDark(): boolean {
+      if (storedThemePref === "dark") return true
+      if (storedThemePref === "light") return false
+      return mq.matches
+    }
+
+    mq.addEventListener("change", () => {
+      if (activeContainer && storedThemePref === "system") {
+        activeContainer.classList.toggle("dark", mq.matches)
+      }
     })
 
     tooltip.init(showTranslationPopup)
@@ -57,7 +71,7 @@ export default defineContentScript({
 
       const container = document.createElement("div")
       container.id = "context-translator-root"
-      container.classList.toggle("dark", mq.matches)
+      container.classList.toggle("dark", resolveIsDark())
       activeContainer = container
       document.body.appendChild(container)
 
@@ -86,7 +100,7 @@ export default defineContentScript({
 
       const container = document.createElement("div")
       container.id = "context-translator-root"
-      container.classList.toggle("dark", mq.matches)
+      container.classList.toggle("dark", resolveIsDark())
       activeContainer = container
       document.body.appendChild(container)
 

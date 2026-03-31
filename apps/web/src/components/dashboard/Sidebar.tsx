@@ -15,6 +15,7 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -164,6 +165,32 @@ export default function Sidebar({
               </>
             )}
           </Button>
+
+          {/* Feedback */}
+          {(() => {
+            const active = isActive("/dashboard/feedback");
+            const link = (
+              <Link
+                href="/dashboard/feedback"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  collapsed && "justify-center px-2"
+                )}
+              >
+                <MessageSquare className="size-4 shrink-0" />
+                {!collapsed && <span>Feedback</span>}
+              </Link>
+            );
+            return collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>{link}</TooltipTrigger>
+                <TooltipContent side="right">Feedback</TooltipContent>
+              </Tooltip>
+            ) : link;
+          })()}
 
           {/* User info + sign out */}
           <div className={cn("flex items-center gap-2 px-2", collapsed && "justify-center")}>

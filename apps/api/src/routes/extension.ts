@@ -11,6 +11,8 @@ import tagsData from '../data/tagsData.ts'
 import reviewData from '../data/reviewData.ts'
 import { usersData, userContextData } from '../data/usersData.ts'
 import statsData from '../data/statsData.ts'
+import { db } from '../db/index.ts'
+import { feedbackTable } from '../db/schema.ts'
 
 type ExportQuerystring = {
   format?: 'csv' | 'json' | 'anki'
@@ -82,6 +84,7 @@ type UserSettingsBody = {
   preferredProvider?: string | null
   dailyGoal?: number
   name?: string | null
+  theme?: string | null
 }
 
 export async function extensionRoutes(
@@ -783,6 +786,7 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         maskedApiKey: maskedKey,
         hasCustomApiKey: !!settings.customApiKey,
         dailyGoal: user?.dailyGoal ?? 10,
+        theme: user?.theme ?? 'system',
         streakFreezes: user?.streakFreezes ?? 0,
       })
     }
@@ -812,7 +816,7 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         ...(name && { name }),
       })
 
-      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal, name: newName } = request.body
+      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal, name: newName, theme: newTheme } = request.body
 
       // Validate dailyGoal if provided
       if (dailyGoal !== undefined) {
@@ -855,6 +859,13 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         updatedName = newName
       }
 
+      // Update theme if provided
+      let updatedTheme = user.theme
+      if (newTheme !== undefined) {
+        await usersData.updateTheme(user.id, newTheme)
+        updatedTheme = newTheme
+      }
+
       // Mask key for response
       let maskedKey = null
       if (updatedSettings.customApiKey) {
@@ -875,8 +886,39 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         maskedApiKey: maskedKey,
         hasCustomApiKey: !!updatedSettings.customApiKey,
         dailyGoal: updatedDailyGoal,
+        theme: updatedTheme,
         streakFreezes: user.streakFreezes,
       })
+    }
+  )
+
+  // POST /feedback — submit user feedback
+  fastify.post<{ Body: { category: string; message: string } }>(
+    '/feedback',
+    { preHandler: [requireAuth] },
+    async (request: FastifyRequest<{ Body: { category: string; message: string } }>, reply: FastifyReply) => {
+      const supabaseId = getAuthenticatedUserId(request)
+      if (!supabaseId) {
+        return reply.code(401).send({ error: 'Unauthorized' })
+      }
+
+      const user = await usersData.retrieveUserBySupabaseId(supabaseId)
+      if (!user) {
+        return reply.code(401).send({ error: 'User not found' })
+      }
+
+      const { category, message } = request.body
+      if (!category || !message?.trim()) {
+        return reply.code(400).send({ error: 'category and message are required' })
+      }
+
+      await db.insert(feedbackTable).values({
+        userId: user.id,
+        category,
+        message: message.trim(),
+      })
+
+      return reply.send({ message: 'Feedback submitted. Thank you!' })
     }
   )
 }

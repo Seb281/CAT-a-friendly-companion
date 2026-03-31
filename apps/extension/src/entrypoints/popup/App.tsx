@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge.tsx'
-import { Languages, Check, LogOut, User, X, Bell, BookOpen, PanelRight } from 'lucide-react'
+import { Languages, Check, LogOut, User, X, Bell, BookOpen, PanelRight, MessageSquare } from 'lucide-react'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { Separator } from '@/components/ui/separator'
 import type { Session } from '@supabase/supabase-js'
@@ -84,11 +84,12 @@ export default function App() {
         settings?: {
           targetLanguage: string | null
           personalContext: string | null
+          theme?: string | null
         }
         error?: string
       }) => {
         if (response?.success && response.settings) {
-          const { targetLanguage: apiTargetLang, personalContext: apiContext } =
+          const { targetLanguage: apiTargetLang, personalContext: apiContext, theme: apiTheme } =
             response.settings
           if (apiTargetLang) {
             setTargetLanguage(apiTargetLang)
@@ -98,9 +99,26 @@ export default function App() {
             setPersonalContext(apiContext)
             chrome.storage.sync.set({ personalContext: apiContext })
           }
+          // Sync theme from dashboard
+          if (apiTheme) {
+            chrome.storage.sync.set({ theme: apiTheme })
+            applyTheme(apiTheme)
+          }
         }
       },
     )
+  }
+
+  function applyTheme(themePref: string) {
+    if (themePref === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else if (themePref === 'light') {
+      document.documentElement.classList.remove('dark')
+    } else {
+      // system
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.classList.toggle('dark', isDark)
+    }
   }
 
   const fetchDueCount = () => {
@@ -500,6 +518,21 @@ export default function App() {
               </div>
             )}
           </div>
+
+          <Separator />
+
+          <Button
+            variant='outline'
+            className='w-full'
+            onClick={() =>
+              chrome.tabs.create({
+                url: `${import.meta.env.VITE_DASHBOARD_URL}/dashboard/feedback`,
+              })
+            }
+          >
+            <MessageSquare className='h-4 w-4 mr-2' />
+            Send Feedback
+          </Button>
 
           <Separator />
 
