@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   X,
   Languages,
@@ -75,6 +75,26 @@ export default function TranslationPopup({
   const [translationError, setTranslationError] = useState(false)
   const [showContext, setShowContext] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [showLangDropdown, setShowLangDropdown] = useState(false)
+  const langDropdownRef = useRef<HTMLDivElement>(null)
+
+  const TARGET_LANGUAGES = [
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Italian',
+    'Portuguese',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Russian',
+    'Arabic',
+    'Hindi',
+    'Dutch',
+    'Swedish',
+    'Turkish',
+  ] as const
 
   function handleSpeak() {
     if (isSpeaking) return
@@ -89,6 +109,60 @@ export default function TranslationPopup({
     speechSynthesis.speak(utterance)
     setTimeout(() => setIsSpeaking(false), 500)
   }
+
+  // Close language dropdown on click outside
+  useEffect(() => {
+    if (!showLangDropdown) return
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        langDropdownRef.current &&
+        !langDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowLangDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showLangDropdown])
+
+  const handleLanguageSwitch = useCallback(
+    (newLang: string) => {
+      setShowLangDropdown(false)
+      if (newLang === targetLanguage) return
+
+      // Update storage
+      chrome.storage.sync.set({ targetLanguage: newLang })
+      setTargetLanguage(newLang)
+
+      // Re-translate with the new language
+      setIsLoading(true)
+      setFromCache(false)
+      setRetranslated(false)
+      setSaveState('idle')
+      chrome.runtime.sendMessage(
+        {
+          action: 'translate',
+          text: `${contextBefore} [${selection}] ${contextAfter}`,
+          concept: selection,
+          forceRefresh: true,
+        },
+        (response: {
+          success: boolean
+          translateObject: TranslationResponse
+          error?: string
+        }): void => {
+          if (response?.success) {
+            setTranslation(response.translateObject)
+            setRetranslated(true)
+          } else {
+            setTranslationError(true)
+          }
+          setIsLoading(false)
+        },
+      )
+    },
+    [targetLanguage, contextBefore, contextAfter, selection],
+  )
 
   useEffect(() => {
     // Send a message to the Service Worker to check the status
@@ -419,23 +493,6 @@ export default function TranslationPopup({
                       </TooltipContent>
                     </Tooltip>
                   ) : null)}
-                {!isLoading &&
-                  translation.language &&
-                  translation.language !== targetLanguage && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge
-                          variant='secondary'
-                          className='text-xs cursor-default'
-                        >
-                          {translation.language}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent className='z-[9999999]'>
-                        Detected language
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
               </div>
             </div>
             <div className='rounded-lg bg-muted/50 p-3'>
@@ -497,19 +554,49 @@ export default function TranslationPopup({
                       Translation
                     </span>
                     {targetLanguage && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            variant='secondary'
-                            className='text-xs cursor-default'
-                          >
-                            {targetLanguage}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent className='z-[9999999]'>
-                          Target language
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className='relative' ref={langDropdownRef}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant='outline'
+                              className='text-xs cursor-pointer hover:bg-secondary flex items-center gap-0.5'
+                              onClick={() =>
+                                setShowLangDropdown((v) => !v)
+                              }
+                            >
+                              {translation.language && translation.language !== targetLanguage
+                                ? `${translation.language} → ${targetLanguage}`
+                                : targetLanguage}
+                              <ChevronDown
+                                className={`size-3 ml-1 transition-transform ${showLangDropdown ? 'rotate-180' : ''}`}
+                              />
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent className='z-[9999999]'>
+                            Change target language
+                          </TooltipContent>
+                        </Tooltip>
+                        {showLangDropdown && (
+                          <div className='absolute top-full right-0 mt-1 bg-popover border rounded-lg shadow-lg z-10 py-1 max-h-60 overflow-y-auto w-40'>
+                            {TARGET_LANGUAGES.map((lang) => (
+                              <div
+                                key={lang}
+                                className={`px-3 py-1.5 text-sm cursor-pointer flex items-center justify-between ${
+                                  lang === targetLanguage
+                                    ? 'bg-secondary font-medium'
+                                    : 'hover:bg-secondary'
+                                }`}
+                                onClick={() => handleLanguageSwitch(lang)}
+                              >
+                                {lang}
+                                {lang === targetLanguage && (
+                                  <Check className='h-3 w-3 text-primary' />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   <div className='rounded-lg bg-primary/5 p-3 border border-primary/20'>
