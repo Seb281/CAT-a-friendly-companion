@@ -12,6 +12,9 @@ export const usersTable = pgTable('users', {
   currentStreak: integer('current_streak').notNull().default(0),
   longestStreak: integer('longest_streak').notNull().default(0),
   lastActiveDate: text('last_active_date'),
+  streakFreezes: integer('streak_freezes').notNull().default(0),
+  freezesUsed: integer('freezes_used').notNull().default(0),
+  dailyGoal: integer('daily_goal').notNull().default(10),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

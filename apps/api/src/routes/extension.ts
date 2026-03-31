@@ -64,6 +64,7 @@ type UserSettingsBody = {
   personalContext: string | null
   customApiKey?: string | null
   preferredProvider?: string | null
+  dailyGoal?: number
 }
 
 export async function extensionRoutes(
@@ -579,6 +580,8 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         return reply.code(401).send({ error: 'Could not get user email' })
       }
 
+      const supabaseId = getAuthenticatedUserId(request)
+      const user = supabaseId ? await usersData.retrieveUserBySupabaseId(supabaseId) : null
       const settings = await userContextData.retrieveUserContext(email)
 
       // Mask API key for security
@@ -597,7 +600,9 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         personalContext: settings.context,
         preferredProvider: settings.preferredProvider,
         maskedApiKey: maskedKey,
-        hasCustomApiKey: !!settings.customApiKey
+        hasCustomApiKey: !!settings.customApiKey,
+        dailyGoal: user?.dailyGoal ?? 10,
+        streakFreezes: user?.streakFreezes ?? 0,
       })
     }
   )
@@ -620,15 +625,23 @@ Keep it simple and practical. Only return the JSON, nothing else.`
       // Ensure user exists in database
       const userFromAuth = (request as any).user
       const name = userFromAuth.user_metadata?.full_name ?? userFromAuth.user_metadata?.name
-      await usersData.findOrCreateUser({
+      const user = await usersData.findOrCreateUser({
         supabaseId: userId,
         email,
         ...(name && { name }),
       })
 
-      const { targetLanguage, personalContext, customApiKey, preferredProvider } = request.body
+      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal } = request.body
+
+      // Validate dailyGoal if provided
+      if (dailyGoal !== undefined) {
+        if (!Number.isInteger(dailyGoal) || dailyGoal < 1 || dailyGoal > 100) {
+          return reply.code(400).send({ error: 'dailyGoal must be an integer between 1 and 100' })
+        }
+      }
+
       const currentSettings = await userContextData.retrieveUserContext(email)
-      
+
       let newApiKey = currentSettings.customApiKey
       if (customApiKey !== undefined) {
          newApiKey = customApiKey
@@ -647,6 +660,13 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         newProvider
       )
 
+      // Update dailyGoal on the user record if provided
+      let updatedDailyGoal = user.dailyGoal
+      if (dailyGoal !== undefined) {
+        await usersData.updateDailyGoal(user.id, dailyGoal)
+        updatedDailyGoal = dailyGoal
+      }
+
       // Mask key for response
       let maskedKey = null
       if (updatedSettings.customApiKey) {
@@ -664,7 +684,9 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         personalContext: updatedSettings.context,
         preferredProvider: updatedSettings.preferredProvider,
         maskedApiKey: maskedKey,
-        hasCustomApiKey: !!updatedSettings.customApiKey
+        hasCustomApiKey: !!updatedSettings.customApiKey,
+        dailyGoal: updatedDailyGoal,
+        streakFreezes: user.streakFreezes,
       })
     }
   )
