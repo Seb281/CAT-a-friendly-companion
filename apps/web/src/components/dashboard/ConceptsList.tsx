@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +39,8 @@ import {
   X,
   Tags,
   Check,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { format } from "date-fns";
 import { languageToBCP47 } from "@/lib/languageCodes";
@@ -111,7 +112,7 @@ export default function ConceptsList() {
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   // Search/filter/sort state
   const [search, setSearch] = useState("");
@@ -648,20 +649,14 @@ export default function ConceptsList() {
               key={concept.id}
               className={`relative group cursor-pointer ${selectedIds.has(concept.id) ? "ring-2 ring-primary" : ""}`}
               onClick={() =>
-                setExpandedId(
-                  expandedId === concept.id ? null : concept.id
-                )
+                setExpandedIds((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(concept.id)) next.delete(concept.id);
+                  else next.add(concept.id);
+                  return next;
+                })
               }
             >
-              <div
-                className={`absolute top-3 left-3 z-10 transition-opacity ${hasSelection ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Checkbox
-                  checked={selectedIds.has(concept.id)}
-                  onCheckedChange={() => toggleSelect(concept.id)}
-                />
-              </div>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-1.5">
@@ -682,27 +677,45 @@ export default function ConceptsList() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(concept.id);
-                    }}
-                    disabled={deletingId === concept.id}
-                  >
-                    {deletingId === concept.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="size-4" />
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 transition-opacity ${selectedIds.has(concept.id) ? "text-blue-500 opacity-100" : "text-muted-foreground hover:text-blue-500 opacity-0 group-hover:opacity-100"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(concept.id);
+                      }}
+                      title="Select"
+                    >
+                      {selectedIds.has(concept.id) ? (
+                        <CheckSquare className="size-4" />
+                      ) : (
+                        <Square className="size-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(concept.id);
+                      }}
+                      disabled={deletingId === concept.id}
+                    >
+                      {deletingId === concept.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <CardTitle className="text-xl leading-tight">
                   <Link
                     href={`/dashboard/vocabulary/${concept.id}`}
-                    className="underline decoration-muted-foreground/30 underline-offset-4 hover:decoration-foreground/50 transition-colors"
+                    className="hover:underline underline-offset-4 transition-colors"
                     title="View concept details"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -748,7 +761,7 @@ export default function ConceptsList() {
                 </p>
 
                 {/* Expanded details */}
-                {expandedId === concept.id && (
+                {expandedIds.has(concept.id) && (
                   <div className="pt-3 space-y-3 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">

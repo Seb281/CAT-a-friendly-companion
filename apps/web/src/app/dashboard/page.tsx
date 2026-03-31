@@ -34,6 +34,7 @@ export default function DashboardHome() {
     dailyGoal?: number;
     todayReviews?: number;
   } | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(true); // default true to avoid flash
@@ -58,6 +59,11 @@ export default function DashboardHome() {
         if (!session) {
           setLoading(false);
           return;
+        }
+
+        const fullName = session.user?.user_metadata?.full_name ?? session.user?.user_metadata?.name;
+        if (fullName) {
+          setUserName(fullName.split(" ")[0]);
         }
 
         const headers = { Authorization: `Bearer ${session.access_token}` };
@@ -122,9 +128,11 @@ export default function DashboardHome() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Home</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {userName ? `Welcome back, ${userName}` : "Welcome back"}
+        </h1>
         <p className="text-muted-foreground">
-          Welcome back. Here&apos;s your learning overview.
+          Here&apos;s your learning overview.
         </p>
       </div>
 
@@ -162,12 +170,6 @@ export default function DashboardHome() {
                         Goal met!
                       </p>
                     )}
-                    <Button asChild>
-                      <Link href="/dashboard/review">
-                        Start Review
-                        <ArrowRight className="size-4 ml-2" />
-                      </Link>
-                    </Button>
                   </>
                 )}
               </CardContent>
