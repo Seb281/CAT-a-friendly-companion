@@ -72,6 +72,7 @@ type Concept = {
   grammarRules: string | null;
   commonness: string | null;
   fixedExpression: string | null;
+  relatedWords: string | null;
   userNotes: string | null;
   exampleSentence: string | null;
   tags: Tag[];
@@ -790,6 +791,36 @@ export default function ConceptsList() {
                         <p className="text-sm">{concept.fixedExpression}</p>
                       </div>
                     )}
+
+                    {(() => {
+                      try {
+                        const words = concept.relatedWords ? JSON.parse(concept.relatedWords) as Array<{ word: string; translation: string; relation: string }> : [];
+                        if (words.length === 0) return null;
+                        return (
+                          <div className="space-y-1.5">
+                            <p className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Related Words</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {words.map((rw, i) => (
+                                <div key={i} className="flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1 text-sm">
+                                  <span className="font-medium">{rw.word}</span>
+                                  <span className="text-muted-foreground">({rw.translation})</span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-1 py-0 ${
+                                      rw.relation === 'synonym' ? 'border-blue-400 text-blue-600 dark:text-blue-400' :
+                                      rw.relation === 'antonym' ? 'border-amber-400 text-amber-600 dark:text-amber-400' :
+                                      'border-border text-muted-foreground'
+                                    }`}
+                                  >
+                                    {rw.relation}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      } catch { return null; }
+                    })()}
 
                     <ConceptNotes
                       conceptId={concept.id}

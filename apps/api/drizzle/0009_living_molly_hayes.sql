@@ -1,0 +1,1 @@
+ALTER TABLE "concepts" ADD COLUMN "related_words" text;

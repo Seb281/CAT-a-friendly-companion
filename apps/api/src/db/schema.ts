@@ -32,6 +32,7 @@ export const conceptsTable = pgTable('concepts', {
   grammarRules: text('grammar_rules'),
   commonness: text('commonness'),
   fixedExpression: text('fixed_expression'),
+  relatedWords: text('related_words'),
   userNotes: text('user_notes'),
   exampleSentence: text('example_sentence'),
   state: text('state').notNull().default('new'),

@@ -92,6 +92,7 @@ const conceptsData = {
       grammarRules?: string | null
       commonness?: string | null
       fixedExpression?: string | null
+      relatedWords?: string | null
     }
   ): Promise<Concept | undefined> {
     const result = await db

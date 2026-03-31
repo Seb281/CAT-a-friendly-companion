@@ -40,6 +40,7 @@ interface TranslationResponse {
   commonUsage?: string
   grammarRules?: string
   commonness?: string
+  relatedWords?: string | Array<{ word: string; translation: string; relation: string }>
 }
 
 type AuthStatus = 'loading' | 'logged_in' | 'logged_out'
@@ -701,6 +702,34 @@ export default function TranslationPopup({
                             </Badge>
                           </div>
                         )}
+
+                        {(() => {
+                          try {
+                            const raw = translation.relatedWords
+                            if (!raw) return null
+                            const words: Array<{ word: string; translation: string; relation: string }> =
+                              typeof raw === 'string' ? JSON.parse(raw) : raw
+                            if (!Array.isArray(words) || words.length === 0) return null
+                            return (
+                              <div className='space-y-1.5'>
+                                <div className='flex items-center gap-2'>
+                                  <Info className='h-4 w-4 text-purple-500' />
+                                  <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                                    Related
+                                  </span>
+                                </div>
+                                <p className='text-sm leading-relaxed pl-6'>
+                                  {words.map((rw, i) => (
+                                    <span key={i}>
+                                      {i > 0 && ', '}
+                                      {rw.word} ({rw.translation})
+                                    </span>
+                                  ))}
+                                </p>
+                              </div>
+                            )
+                          } catch { return null }
+                        })()}
                       </>
                     )}
                   </div>

@@ -65,7 +65,13 @@ export async function enrichConceptInBackground(
     )
 
     const { text } = await generateText({ model, prompt, temperature: 0 })
-    const result = extractJSON(text) as Record<string, string>
+    const result = extractJSON(text) as Record<string, any>
+
+    // Serialize relatedWords array to JSON string if present
+    let relatedWordsJson: string | null = null
+    if (Array.isArray(result.relatedWords) && result.relatedWords.length > 0) {
+      relatedWordsJson = JSON.stringify(result.relatedWords)
+    }
 
     await conceptsData.enrichConcept(conceptId, {
       phoneticApproximation: result.phoneticApproximation ?? null,
@@ -73,6 +79,7 @@ export async function enrichConceptInBackground(
       grammarRules: result.grammarRules ?? null,
       commonness: result.commonness ?? null,
       fixedExpression: result.fixedExpression === 'no' ? null : result.fixedExpression ?? null,
+      relatedWords: relatedWordsJson,
     })
   } catch (error) {
     console.error(`Failed to enrich concept ${conceptId}:`, error)
