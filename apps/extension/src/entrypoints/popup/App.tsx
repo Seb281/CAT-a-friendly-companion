@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge.tsx'
-import { Languages, Check, LogOut, User, X, Bell, BookOpen } from 'lucide-react'
+import { Languages, Check, LogOut, User, X, Bell, BookOpen, PanelRight } from 'lucide-react'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { Separator } from '@/components/ui/separator'
 import type { Session } from '@supabase/supabase-js'
@@ -248,10 +248,27 @@ export default function App() {
             <Languages className='h-5 w-5 text-primary' />
             <CardTitle className='text-lg'>Context-Aware Translator</CardTitle>
           </div>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Translate any text, in context. Enable on a site for automatic
-            activation, or right-click selected text to translate anywhere.
-          </p>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground mt-1 flex-1'>
+              Translate any text, in context. Enable on a site for automatic
+              activation, or right-click selected text to translate anywhere.
+            </p>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={async () => {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+                if (tab?.windowId) {
+                  chrome.sidePanel.open({ windowId: tab.windowId })
+                  window.close()
+                }
+              }}
+              className='ml-2 shrink-0 text-muted-foreground hover:text-foreground'
+              title='Open Side Panel'
+            >
+              <PanelRight className='h-4 w-4' />
+            </Button>
+          </div>
           <div className='mt-2'>
             {currentSitePattern ? (
               isCurrentSiteAllowed ? (

@@ -108,8 +108,16 @@ export default defineBackground(() => {
     })
   }
 
+  // --- Side Panel Setup ---
+
+  function setupSidePanel() {
+    chrome.sidePanel.setOptions({ path: 'sidepanel.html' })
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+  }
+
   chrome.runtime.onInstalled.addListener(() => {
     setupContextMenu()
+    setupSidePanel()
     updateBadge()
   })
   chrome.runtime.onStartup.addListener(() => {
@@ -234,7 +242,7 @@ type TranslateResponse = {
 chrome.runtime.onMessage.addListener(
   (
     message: TranslateMessage,
-    _: chrome.runtime.MessageSender,
+    sender: chrome.runtime.MessageSender,
     sendResponse: (response: TranslateResponse) => void
   ): boolean => {
 
@@ -257,6 +265,8 @@ chrome.runtime.onMessage.addListener(
                 },
                 fromCache: true,
                 cachedConceptId: cached.id,
+                targetLanguage,
+                sourceLanguage,
               }
             }
           }
@@ -267,10 +277,30 @@ chrome.runtime.onMessage.addListener(
             sourceLanguage,
             personalContext
           )
-          return { translateObject, fromCache: false }
+          return { translateObject, fromCache: false, targetLanguage, sourceLanguage }
         })
-        .then(({ translateObject, fromCache, cachedConceptId }) => {
+        .then(({ translateObject, fromCache, cachedConceptId, targetLanguage, sourceLanguage }) => {
           sendResponse({ success: true, translateObject, fromCache, cachedConceptId })
+
+          // Push to translation history in session storage
+          const translationObj = translateObject as {
+            contextualTranslation?: string
+            language?: string
+          }
+          const historyItem = {
+            concept: message.concept || message.text,
+            translation: translationObj.contextualTranslation || '',
+            sourceLanguage: translationObj.language || sourceLanguage || '',
+            targetLanguage: targetLanguage || '',
+            url: sender.tab?.url ?? '',
+            timestamp: Date.now(),
+          }
+          chrome.storage.session.get('translationHistory', (result) => {
+            const history = (result.translationHistory || []) as typeof historyItem[]
+            history.unshift(historyItem)
+            if (history.length > 50) history.length = 50
+            chrome.storage.session.set({ translationHistory: history })
+          })
         })
         .catch((error) => {
           sendResponse({ success: false, error: error.message })
@@ -466,6 +496,38 @@ chrome.runtime.onMessage.addListener(
           }
           const data = await response.json()
           sendResponse({ success: true, ...data })
+        })
+        .catch((error) => {
+          sendResponse({ success: false, error: error.message })
+        })
+      return true
+    }
+    return false
+  }
+)
+
+// Listener to fetch saved concepts from API (for side panel)
+chrome.runtime.onMessage.addListener(
+  (message: { action: string; limit?: number }, _, sendResponse) => {
+    if (message.action === "fetchSavedConcepts") {
+      const limit = message.limit || 10
+      getSupabaseToken()
+        .then(async (token) => {
+          if (!token) {
+            sendResponse({ success: false, error: "Not authenticated" })
+            return
+          }
+          const response = await fetch(
+            `${import.meta.env.VITE_BASE_URL}/saved-concepts?limit=${limit}&sortBy=date&sortOrder=desc`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+          if (!response.ok) {
+            throw new Error(`Failed to fetch saved concepts: ${response.statusText}`)
+          }
+          const data = await response.json()
+          sendResponse({ success: true, concepts: data.concepts || data })
         })
         .catch((error) => {
           sendResponse({ success: false, error: error.message })
