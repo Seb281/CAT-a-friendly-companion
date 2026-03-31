@@ -9,6 +9,7 @@ import type { QuizMode } from "@/hooks/useReviewSession";
 import FlashcardQuiz from "@/components/dashboard/quiz/FlashcardQuiz";
 import MultipleChoiceQuiz from "@/components/dashboard/quiz/MultipleChoiceQuiz";
 import TypeAnswerQuiz from "@/components/dashboard/quiz/TypeAnswerQuiz";
+import ContextualRecallQuiz from "@/components/dashboard/quiz/ContextualRecallQuiz";
 import SessionSummary from "@/components/dashboard/quiz/SessionSummary";
 
 export default function ReviewSessionPage() {
@@ -103,6 +104,13 @@ export default function ReviewSessionPage() {
       )}
       {currentQuestion && mode === "type-answer" && (
         <TypeAnswerQuiz
+          key={currentQuestion.conceptId}
+          question={currentQuestion}
+          onAnswer={submitAnswer}
+        />
+      )}
+      {currentQuestion && mode === "contextual-recall" && (
+        <ContextualRecallQuiz
           key={currentQuestion.conceptId}
           question={currentQuestion}
           onAnswer={submitAnswer}

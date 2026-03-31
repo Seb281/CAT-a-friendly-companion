@@ -20,7 +20,7 @@ type DueQuerystring = {
 }
 
 type QuizQuerystring = {
-  type?: 'flashcard' | 'multiple-choice' | 'type-answer'
+  type?: 'flashcard' | 'multiple-choice' | 'type-answer' | 'contextual-recall'
   count?: string
 }
 
@@ -183,6 +183,23 @@ export async function reviewRoutes(
 
       const count = request.query.count ? parseInt(request.query.count, 10) : 10
       const type = request.query.type ?? 'flashcard'
+
+      // For contextual-recall, fetch concepts with context data
+      if (type === 'contextual-recall') {
+        const dueConcepts = await reviewData.getDueConceptsWithContext(user.id, count)
+        const questions = dueConcepts.map((concept) => ({
+          conceptId: concept.id,
+          concept: concept.concept,
+          translation: concept.translation,
+          contextBefore: concept.contextBefore,
+          contextAfter: concept.contextAfter,
+          sourceLanguage: concept.sourceLanguage,
+          targetLanguage: concept.targetLanguage,
+          phoneticApproximation: concept.phoneticApproximation,
+          schedule: concept.schedule,
+        }))
+        return reply.send({ questions })
+      }
 
       const dueConcepts = await reviewData.getDueConcepts(user.id, count)
 

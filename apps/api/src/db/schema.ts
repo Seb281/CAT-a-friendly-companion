@@ -35,10 +35,10 @@ export const conceptsTable = pgTable('concepts', {
   relatedWords: text('related_words'),
   userNotes: text('user_notes'),
   exampleSentence: text('example_sentence'),
-  state: text('state').notNull().default('new'),
   contextBefore: text('context_before'),
   contextAfter: text('context_after'),
   sourceUrl: text('source_url'),
+  state: text('state').notNull().default('new'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

@@ -16,6 +16,7 @@ import {
   BookOpen,
   ListChecks,
   Keyboard,
+  FileText,
   Loader2,
   GraduationCap,
   PartyPopper,
@@ -43,6 +44,13 @@ const MODES = [
     icon: Keyboard,
     description:
       "Type the translation from memory. Tests active recall and spelling.",
+  },
+  {
+    value: "contextual-recall",
+    label: "Context Recall",
+    icon: FileText,
+    description:
+      "See the original sentence with the word removed. Fill in the blank from memory.",
   },
 ] as const;
 
@@ -173,7 +181,7 @@ export default function ReviewPage() {
 
       {/* Mode selector — hidden when user has fewer than 5 concepts */}
       {(totalConcepts === null || totalConcepts >= 5) && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {MODES.map((mode) => (
             <Card
               key={mode.value}

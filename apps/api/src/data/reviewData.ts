@@ -1,5 +1,5 @@
 import { db } from '../db/index.ts'
-import { and, eq, lte, gte, lt, sql, ne, inArray, isNull, desc } from 'drizzle-orm'
+import { and, eq, lte, gte, lt, sql, ne, inArray, isNull, desc, or, isNotNull } from 'drizzle-orm'
 import { reviewScheduleTable, conceptsTable, reviewSessionsTable } from '../db/schema.ts'
 import type { ReviewSchedule, Concept, ReviewSession } from '../db/schema.ts'
 
@@ -18,6 +18,35 @@ const reviewData = {
         and(
           eq(reviewScheduleTable.userId, userId),
           lte(reviewScheduleTable.nextReviewAt, now)
+        )
+      )
+      .orderBy(reviewScheduleTable.nextReviewAt)
+      .limit(limit)
+
+    return schedules.map((row) => ({
+      ...row.concepts,
+      schedule: row.review_schedule,
+    }))
+  },
+
+  async getDueConceptsWithContext(
+    userId: number,
+    limit: number = 20
+  ): Promise<(Concept & { schedule: ReviewSchedule })[]> {
+    const now = new Date()
+
+    const schedules = await db
+      .select()
+      .from(reviewScheduleTable)
+      .innerJoin(conceptsTable, eq(reviewScheduleTable.conceptId, conceptsTable.id))
+      .where(
+        and(
+          eq(reviewScheduleTable.userId, userId),
+          lte(reviewScheduleTable.nextReviewAt, now),
+          or(
+            isNotNull(conceptsTable.contextBefore),
+            isNotNull(conceptsTable.contextAfter)
+          )
         )
       )
       .orderBy(reviewScheduleTable.nextReviewAt)
