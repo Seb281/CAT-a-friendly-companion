@@ -81,6 +81,7 @@ type UserSettingsBody = {
   customApiKey?: string | null
   preferredProvider?: string | null
   dailyGoal?: number
+  name?: string | null
 }
 
 export async function extensionRoutes(
@@ -775,6 +776,7 @@ Keep it simple and practical. Only return the JSON, nothing else.`
       }
 
       return reply.send({
+        name: user?.name ?? null,
         targetLanguage: settings.targetLanguage,
         personalContext: settings.context,
         preferredProvider: settings.preferredProvider,
@@ -810,7 +812,7 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         ...(name && { name }),
       })
 
-      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal } = request.body
+      const { targetLanguage, personalContext, customApiKey, preferredProvider, dailyGoal, name: newName } = request.body
 
       // Validate dailyGoal if provided
       if (dailyGoal !== undefined) {
@@ -846,6 +848,13 @@ Keep it simple and practical. Only return the JSON, nothing else.`
         updatedDailyGoal = dailyGoal
       }
 
+      // Update name if provided
+      let updatedName = user.name
+      if (newName !== undefined) {
+        await usersData.updateName(user.id, newName)
+        updatedName = newName
+      }
+
       // Mask key for response
       let maskedKey = null
       if (updatedSettings.customApiKey) {
@@ -859,6 +868,7 @@ Keep it simple and practical. Only return the JSON, nothing else.`
 
       return reply.send({
         message: 'Settings updated',
+        name: updatedName,
         targetLanguage: updatedSettings.targetLanguage,
         personalContext: updatedSettings.context,
         preferredProvider: updatedSettings.preferredProvider,

@@ -41,6 +41,10 @@ import {
   Check,
   CheckSquare,
   Square,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { languageToBCP47 } from "@/lib/languageCodes";
@@ -88,9 +92,10 @@ const PAGE_SIZE = 30;
 function getReviewStatus(nextReviewAt: string | null): {
   color: string;
   label: string;
+  icon: typeof AlertCircle;
 } {
   if (!nextReviewAt) {
-    return { color: "bg-neutral-400", label: "Never reviewed" };
+    return { color: "text-neutral-400", label: "Never reviewed", icon: Circle };
   }
 
   const now = new Date();
@@ -99,12 +104,12 @@ function getReviewStatus(nextReviewAt: string | null): {
   const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000);
 
   if (reviewDate < startOfToday) {
-    return { color: "bg-red-500", label: "Overdue" };
+    return { color: "text-red-500", label: "Overdue", icon: AlertCircle };
   }
   if (reviewDate < endOfToday) {
-    return { color: "bg-amber-500", label: "Due today" };
+    return { color: "text-amber-500", label: "Due today", icon: Clock };
   }
-  return { color: "bg-emerald-500", label: "Up to date" };
+  return { color: "text-emerald-500", label: "Up to date", icon: CheckCircle2 };
 }
 
 export default function ConceptsList() {
@@ -643,11 +648,11 @@ export default function ConceptsList() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
           {concepts.map((concept) => (
             <Card
               key={concept.id}
-              className={`relative group cursor-pointer ${selectedIds.has(concept.id) ? "ring-2 ring-primary" : ""}`}
+              className={`relative group cursor-pointer break-inside-avoid ${selectedIds.has(concept.id) ? "ring-2 ring-primary" : ""}`}
               onClick={() =>
                 setExpandedIds((prev) => {
                   const next = new Set(prev);
@@ -663,37 +668,8 @@ export default function ConceptsList() {
                     <Badge variant="outline" className="text-xs font-normal">
                       {concept.sourceLanguage} &rarr; {concept.targetLanguage}
                     </Badge>
-                    <TooltipProvider delayDuration={200}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span
-                            className={`${getReviewStatus(concept.nextReviewAt).color} size-2 rounded-full inline-block shrink-0`}
-                            aria-label={getReviewStatus(concept.nextReviewAt).label}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {getReviewStatus(concept.nextReviewAt).label}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </div>
                   <div className="flex items-center gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 transition-opacity ${selectedIds.has(concept.id) ? "text-blue-500 opacity-100" : "text-muted-foreground hover:text-blue-500 opacity-0 group-hover:opacity-100"}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSelect(concept.id);
-                      }}
-                      title="Select"
-                    >
-                      {selectedIds.has(concept.id) ? (
-                        <CheckSquare className="size-4" />
-                      ) : (
-                        <Square className="size-4" />
-                      )}
-                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -710,6 +686,40 @@ export default function ConceptsList() {
                         <Trash2 className="size-4" />
                       )}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 transition-opacity ${selectedIds.has(concept.id) ? "text-blue-500 opacity-100" : "text-muted-foreground hover:text-blue-500 opacity-0 group-hover:opacity-100"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(concept.id);
+                      }}
+                      title="Select"
+                    >
+                      {selectedIds.has(concept.id) ? (
+                        <CheckSquare className="size-4" />
+                      ) : (
+                        <Square className="size-4" />
+                      )}
+                    </Button>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className={`${getReviewStatus(concept.nextReviewAt).color} inline-flex items-center justify-center size-8 shrink-0`}
+                            aria-label={getReviewStatus(concept.nextReviewAt).label}
+                          >
+                            {(() => {
+                              const StatusIcon = getReviewStatus(concept.nextReviewAt).icon;
+                              return <StatusIcon className="size-4" />;
+                            })()}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {getReviewStatus(concept.nextReviewAt).label}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
                 <CardTitle className="text-xl leading-tight">

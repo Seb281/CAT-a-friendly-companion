@@ -129,19 +129,19 @@ export default function ReviewPage() {
       )}
 
       {/* Due count card or empty state */}
-      {!loading && totalConcepts !== null && totalConcepts < 5 ? (
+      {!loading && totalConcepts !== null && totalConcepts === 0 ? (
         <div className="text-center py-12 space-y-4">
           <div className="flex justify-center">
             <div className="p-4 rounded-full bg-muted">
               <BookOpen className="size-8 text-muted-foreground" />
             </div>
           </div>
-          <h3 className="text-lg font-medium">Not enough vocabulary yet</h3>
+          <h3 className="text-lg font-medium">No vocabulary yet</h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            Save at least 5 words to unlock review mode. Start by translating text with the extension.
+            Save some words to start reviewing. Use the extension to translate and save new vocabulary.
           </p>
           <Button variant="outline" asChild>
-            <Link href="/dashboard">Go to Vocabulary</Link>
+            <Link href="/dashboard">Go to Dashboard</Link>
           </Button>
         </div>
       ) : (
@@ -161,7 +161,7 @@ export default function ReviewPage() {
                 <>
                   <p className="font-semibold">All caught up!</p>
                   <p className="text-sm text-muted-foreground">
-                    Your next review is scheduled. Keep translating to add more words.
+                    No items are due, but you can still practice. Pick a mode below.
                   </p>
                 </>
               ) : (
@@ -179,8 +179,8 @@ export default function ReviewPage() {
         </Card>
       )}
 
-      {/* Mode selector — hidden when user has fewer than 5 concepts */}
-      {(totalConcepts === null || totalConcepts >= 5) && (
+      {/* Mode selector */}
+      {(totalConcepts === null || totalConcepts > 0) && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {MODES.map((mode) => (
             <Card
@@ -189,7 +189,7 @@ export default function ReviewPage() {
                 selectedMode === mode.value
                   ? "bg-primary/10 ring-1 ring-primary/50"
                   : "hover:bg-card/80"
-              } ${dueCount === 0 ? "opacity-50 pointer-events-none" : ""}`}
+              }`}
               onClick={() => setSelectedMode(mode.value)}
             >
               <CardHeader>
@@ -209,7 +209,7 @@ export default function ReviewPage() {
       )}
 
       {/* Count & start */}
-      {dueCount !== null && dueCount > 0 && (totalConcepts === null || totalConcepts >= 5) && (
+      {(totalConcepts === null || totalConcepts > 0) && (
         <div className="flex items-center gap-3 justify-end">
           <span className="text-sm text-muted-foreground">Items:</span>
           <Select value={selectedCount} onValueChange={setSelectedCount}>

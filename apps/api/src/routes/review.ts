@@ -184,11 +184,14 @@ export async function reviewRoutes(
       const count = request.query.count ? parseInt(request.query.count, 10) : 10
       const type = request.query.type ?? 'flashcard'
 
-      // For contextual-recall, fetch concepts with context data; fall back to regular due concepts
+      // For contextual-recall, fetch concepts with context data; fall back to due, then any
       if (type === 'contextual-recall') {
         let dueConcepts = await reviewData.getDueConceptsWithContext(user.id, count)
         if (dueConcepts.length === 0) {
           dueConcepts = await reviewData.getDueConcepts(user.id, count)
+        }
+        if (dueConcepts.length === 0) {
+          dueConcepts = await reviewData.getAnyConcepts(user.id, count)
         }
         const questions = dueConcepts.map((concept) => ({
           conceptId: concept.id,
@@ -204,7 +207,11 @@ export async function reviewRoutes(
         return reply.send({ questions })
       }
 
-      const dueConcepts = await reviewData.getDueConcepts(user.id, count)
+      // Fetch due concepts, falling back to any concepts if none are due
+      let dueConcepts = await reviewData.getDueConcepts(user.id, count)
+      if (dueConcepts.length === 0) {
+        dueConcepts = await reviewData.getAnyConcepts(user.id, count)
+      }
 
       if (type === 'multiple-choice') {
         // For each concept, generate distractors

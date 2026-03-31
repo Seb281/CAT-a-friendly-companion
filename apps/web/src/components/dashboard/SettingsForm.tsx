@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Key, ShieldCheck, AlertCircle, Monitor, Sun, Moon, Globe, Plus, X, WifiOff, Target } from "lucide-react";
+import { Loader2, Key, ShieldCheck, AlertCircle, Monitor, Sun, Moon, Globe, Plus, X, WifiOff, Target, User } from "lucide-react";
 import { useTheme } from "next-themes";
 
 export default function SettingsForm() {
@@ -35,6 +35,7 @@ export default function SettingsForm() {
   }, []);
   
   // Form State
+  const [firstName, setFirstName] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
   const [personalContext, setPersonalContext] = useState("");
   const [preferredProvider, setPreferredProvider] = useState("google");
@@ -72,6 +73,7 @@ export default function SettingsForm() {
 
         if (res.ok) {
           const data = await res.json();
+          setFirstName(data.name || "");
           setTargetLanguage(data.targetLanguage || "English");
           setPersonalContext(data.personalContext || "");
           setPreferredProvider(data.preferredProvider || "google");
@@ -158,6 +160,7 @@ export default function SettingsForm() {
       const token = session.access_token;
 
       const payload: any = {
+        name: firstName || null,
         targetLanguage,
         personalContext,
         preferredProvider,
@@ -242,6 +245,32 @@ export default function SettingsForm() {
       </Card>
 
     <form onSubmit={handleSave} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <User className="size-5 text-muted-foreground" />
+            <div>
+              <CardTitle>Profile</CardTitle>
+              <CardDescription>
+                Your display name shown on the dashboard.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              placeholder="Your first name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="max-w-xs"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">

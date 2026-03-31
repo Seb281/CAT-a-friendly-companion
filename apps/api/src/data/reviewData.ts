@@ -29,6 +29,24 @@ const reviewData = {
     }))
   },
 
+  async getAnyConcepts(
+    userId: number,
+    limit: number = 20
+  ): Promise<(Concept & { schedule: ReviewSchedule })[]> {
+    const schedules = await db
+      .select()
+      .from(reviewScheduleTable)
+      .innerJoin(conceptsTable, eq(reviewScheduleTable.conceptId, conceptsTable.id))
+      .where(eq(reviewScheduleTable.userId, userId))
+      .orderBy(sql`RANDOM()`)
+      .limit(limit)
+
+    return schedules.map((row) => ({
+      ...row.concepts,
+      schedule: row.review_schedule,
+    }))
+  },
+
   async getDueConceptsWithContext(
     userId: number,
     limit: number = 20
