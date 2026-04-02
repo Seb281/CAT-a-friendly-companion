@@ -22,6 +22,18 @@ export async function i18nRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Missing language or version' })
     }
 
+    // Validate language against known set
+    const SUPPORTED_LANGUAGES = [
+      'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese',
+      'Russian', 'Japanese', 'Chinese', 'Korean', 'Arabic', 'Hindi',
+      'Dutch', 'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Polish',
+      'Turkish', 'Greek', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian',
+      'Malay', 'Czech', 'Slovak', 'Hungarian', 'Romanian', 'Bulgarian',
+    ]
+    if (!SUPPORTED_LANGUAGES.includes(language)) {
+      return reply.status(400).send({ error: 'Unsupported language' })
+    }
+
     // English is the default — no translation needed
     if (language === 'English') {
       return reply.send({ translations: null, isDefault: true })

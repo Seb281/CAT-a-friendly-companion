@@ -99,5 +99,9 @@ export async function batchTranslateWithDeepL(
   }
 
   const data = await response.json() as { translations: Array<{ text: string }> }
-  return data.translations.map((t) => t.text)
+  const result = data.translations.map((t) => t.text)
+  if (result.length !== texts.length) {
+    throw new Error(`DeepL returned ${result.length} translations for ${texts.length} inputs`)
+  }
+  return result
 }
