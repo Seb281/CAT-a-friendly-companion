@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { History, Bookmark, Settings, Check, ExternalLink, BookOpen, Bell, X, MessageSquare, Languages } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import QuickReview from '@/components/QuickReview'
 import TranslateTab from '@/components/TranslateTab'
 import type { Session } from '@supabase/supabase-js'
@@ -40,6 +41,38 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [dueCount, setDueCount] = useState(0)
+  const [isSiteEnabled, setIsSiteEnabled] = useState(true) // default true to avoid flash
+  const [currentSitePattern, setCurrentSitePattern] = useState<string | null>(null)
+
+  useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      if (!tab?.url) return
+      try {
+        const url = new URL(tab.url)
+        if (url.protocol === 'https:' || url.protocol === 'http:') {
+          const pattern = `${url.origin}/*`
+          setCurrentSitePattern(pattern)
+          chrome.runtime.sendMessage({ action: 'getAllowedSites' }, (response) => {
+            if (response?.success) {
+              setIsSiteEnabled(response.sites.includes(pattern))
+            }
+          })
+        }
+      } catch { /* invalid URL */ }
+    })
+  }, [])
+
+  async function handleEnableSite() {
+    if (!currentSitePattern) return
+    const granted = await chrome.permissions.request({ origins: [currentSitePattern] })
+    if (!granted) return
+    chrome.runtime.sendMessage(
+      { action: 'addAllowedSite', pattern: currentSitePattern },
+      (response) => {
+        if (response?.success) setIsSiteEnabled(true)
+      },
+    )
+  }
 
   const fetchDueCount = useCallback(() => {
     chrome.runtime.sendMessage({ action: 'getDueCount' }, (response) => {
@@ -115,52 +148,73 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Tab bar */}
-      <div className="flex border-b border-border shrink-0">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'text-foreground border-b-2 border-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-            {tab.id === 'review' && dueCount > 0 && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1">
-                {dueCount}
-              </Badge>
-            )}
-          </button>
-        ))}
-      </div>
+    <TooltipProvider delayDuration={0}>
+      <div className="h-screen flex flex-col">
+        {/* Enable site prompt */}
+        {!isSiteEnabled && currentSitePattern && (
+          <div className="px-3 py-2 bg-primary/5 border-b border-primary/20 flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground flex-1">
+              {t('ext.side.enableSitePrompt')}
+            </p>
+            <Button size="sm" variant="default" onClick={handleEnableSite} className="shrink-0 text-xs">
+              {t('ext.side.enableHere')}
+            </Button>
+          </div>
+        )}
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTab === 'translate' && (
-          <TranslateTab
-            session={session}
-            onSwitchToSettings={() => setActiveTab('settings')}
-          />
-        )}
-        {activeTab === 'history' && <HistoryTab />}
-        {activeTab === 'saved' && <SavedTab session={session} />}
-        {activeTab === 'review' && (
-          <ReviewTab
-            session={session}
-            onComplete={() => {
-              setActiveTab('history')
-              fetchDueCount()
-            }}
-          />
-        )}
-        {activeTab === 'settings' && <SettingsTab session={session} />}
+        {/* Tab content */}
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'translate' && (
+            <TranslateTab
+              session={session}
+              onSwitchToSettings={() => setActiveTab('settings')}
+            />
+          )}
+          {activeTab === 'history' && <HistoryTab />}
+          {activeTab === 'saved' && <SavedTab session={session} />}
+          {activeTab === 'review' && (
+            <ReviewTab
+              session={session}
+              onComplete={() => {
+                setActiveTab('history')
+                fetchDueCount()
+              }}
+            />
+          )}
+          {activeTab === 'settings' && <SettingsTab session={session} />}
+        </div>
+
+        {/* Bottom icon bar */}
+        <div className="shrink-0 border-t border-border bg-background">
+          <div className="flex overflow-x-auto">
+            {tabs.map((tab) => (
+              <Tooltip key={tab.id}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex items-center justify-center p-3 transition-colors ${
+                      activeTab === tab.id
+                        ? 'text-foreground bg-secondary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {tab.icon}
+                    {tab.id === 'review' && dueCount > 0 && (
+                      <span className="ml-0.5 text-[8px] font-bold text-primary">
+                        {dueCount}
+                      </span>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  {tab.label}
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 }
 

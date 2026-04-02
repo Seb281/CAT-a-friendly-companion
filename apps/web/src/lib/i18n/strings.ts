@@ -359,6 +359,8 @@ export const UI_STRINGS: Record<string, string> = {
   "ext.side.manageSites": "Manage Sites",
   "ext.side.noSites": "No sites enabled yet.",
   "ext.side.noSitesDesc": "Enable translation on sites via the extension popup.",
+  "ext.side.enableSitePrompt": "This site isn't enabled yet. Enable it to translate text by selecting it.",
+  "ext.side.enableHere": "Enable on this site",
 
   // Extension translation popup
   "ext.popup.translationUnavailable": "Translation unavailable",
