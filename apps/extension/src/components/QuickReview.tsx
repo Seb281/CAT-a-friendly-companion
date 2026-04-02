@@ -26,6 +26,10 @@ export default function QuickReview({ onBack }: Props) {
     chrome.runtime.sendMessage(
       { action: 'getQuizItems', count: 5 },
       (response) => {
+        if (chrome.runtime.lastError) {
+          setLoading(false)
+          return
+        }
         setItems(response?.items ?? [])
         setLoading(false)
       }
@@ -38,6 +42,9 @@ export default function QuickReview({ onBack }: Props) {
       action: 'submitReview',
       conceptId: item.conceptId,
       quality,
+    }, () => {
+      // Check lastError to suppress unchecked error warnings
+      if (chrome.runtime.lastError) return
     })
 
     setResults((prev) => [...prev, quality])

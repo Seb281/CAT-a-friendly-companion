@@ -316,6 +316,11 @@ function SavedTab({ session }: { session: Session | null }) {
     chrome.runtime.sendMessage(
       { action: 'fetchSavedConcepts', limit: 10 },
       (response) => {
+        if (chrome.runtime.lastError) {
+          setIsLoading(false)
+          setError(chrome.runtime.lastError.message || 'Connection error')
+          return
+        }
         setIsLoading(false)
         if (response?.success) {
           setSavedConcepts(response.concepts || [])
@@ -360,6 +365,11 @@ function SavedTab({ session }: { session: Session | null }) {
             chrome.runtime.sendMessage(
               { action: 'fetchSavedConcepts', limit: 10 },
               (response) => {
+                if (chrome.runtime.lastError) {
+                  setIsLoading(false)
+                  setError(chrome.runtime.lastError.message || 'Connection error')
+                  return
+                }
                 setIsLoading(false)
                 if (response?.success) {
                   setSavedConcepts(response.concepts || [])
