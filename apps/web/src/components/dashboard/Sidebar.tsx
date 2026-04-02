@@ -37,7 +37,8 @@ const NAV_ITEMS = [
   { labelKey: "nav.tags", icon: Tags, href: "/dashboard/tags" },
 ];
 
-const SECONDARY_NAV = [
+const FOOTER_NAV = [
+  { labelKey: "nav.feedback", icon: MessageSquare, href: "/dashboard/feedback" },
   { labelKey: "nav.importExport", icon: ArrowUpDown, href: "/dashboard/import-export" },
   { labelKey: "nav.settings", icon: Settings, href: "/dashboard/settings" },
 ];
@@ -118,9 +119,28 @@ export default function Sidebar({
             return link;
           })}
 
-          <div className="my-3" />
+        </nav>
 
-          {SECONDARY_NAV.map((item) => {
+        {/* Footer */}
+        <div className="px-2 py-3 space-y-2 shrink-0">
+          {/* Collapse toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleCollapse}
+            className={cn("w-full text-muted-foreground hover:text-foreground", collapsed ? "justify-center" : "justify-start")}
+          >
+            {collapsed ? (
+              <ChevronRight className="size-4" />
+            ) : (
+              <>
+                <ChevronLeft className="size-4 mr-2" />
+                {t("nav.collapse")}
+              </>
+            )}
+          </Button>
+
+          {FOOTER_NAV.map((item) => {
             const active = isActive(item.href);
             const label = t(item.labelKey);
             const link = (
@@ -150,52 +170,6 @@ export default function Sidebar({
             }
             return link;
           })}
-        </nav>
-
-        {/* Footer */}
-        <div className="px-2 py-3 space-y-2 shrink-0">
-          {/* Collapse toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleCollapse}
-            className={cn("w-full text-muted-foreground hover:text-foreground", collapsed ? "justify-center" : "justify-start")}
-          >
-            {collapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <>
-                <ChevronLeft className="size-4 mr-2" />
-                {t("nav.collapse")}
-              </>
-            )}
-          </Button>
-
-          {/* Feedback */}
-          {(() => {
-            const active = isActive("/dashboard/feedback");
-            const link = (
-              <Link
-                href="/dashboard/feedback"
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <MessageSquare className="size-4 shrink-0" />
-                {!collapsed && <span>{t("nav.feedback")}</span>}
-              </Link>
-            );
-            return collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>{link}</TooltipTrigger>
-                <TooltipContent side="right">{t("nav.feedback")}</TooltipContent>
-              </Tooltip>
-            ) : link;
-          })()}
 
           {/* User info + sign out */}
           <div className={cn("flex items-center gap-2 px-2", collapsed && "justify-center")}>

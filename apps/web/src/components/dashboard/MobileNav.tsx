@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Tags, ArrowUpDown, Settings, LogOut, Languages } from "lucide-react";
+import { Tags, ArrowUpDown, Settings, LogOut, Languages, MessageSquare } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const TABS = [
@@ -30,6 +30,7 @@ const TABS = [
 const MORE_ITEMS = [
   { labelKey: "nav.translate", icon: Languages, href: "/dashboard/translate" },
   { labelKey: "nav.tags", icon: Tags, href: "/dashboard/tags" },
+  { labelKey: "nav.feedback", icon: MessageSquare, href: "/dashboard/feedback" },
   { labelKey: "nav.importExport", icon: ArrowUpDown, href: "/dashboard/import-export" },
   { labelKey: "nav.settings", icon: Settings, href: "/dashboard/settings" },
 ];
