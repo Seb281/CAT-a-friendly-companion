@@ -71,3 +71,33 @@ export async function translateWithDeepL(params: {
     detectedSourceLang: first.detected_source_language,
   }
 }
+
+export async function batchTranslateWithDeepL(
+  texts: string[],
+  targetLang: string,
+  sourceLang: string = 'EN',
+): Promise<string[]> {
+  if (!isDeepLConfigured()) {
+    throw new Error('DeepL is not configured')
+  }
+
+  const response = await fetch(`${DEEPL_API_URL}/v2/translate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      text: texts,
+      target_lang: targetLang,
+      source_lang: sourceLang,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`DeepL batch translate failed: ${response.status}`)
+  }
+
+  const data = await response.json() as { translations: Array<{ text: string }> }
+  return data.translations.map((t) => t.text)
+}
