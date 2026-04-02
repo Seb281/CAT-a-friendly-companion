@@ -149,10 +149,10 @@ export default function App() {
                 </div>
               ) : (
                 <Button
-                  variant='link'
+                  variant='default'
                   size='sm'
                   onClick={handleAddCurrentSite}
-                  className='text-foreground'
+                  className='w-full'
                 >
                   {t('ext.enableSite')}
                 </Button>
@@ -163,6 +163,9 @@ export default function App() {
               </p>
             )}
           </div>
+          <p className='text-[10px] text-muted-foreground mt-1'>
+            {t('ext.manageInSettings')}
+          </p>
         </CardHeader>
 
         <CardContent className='space-y-3'>

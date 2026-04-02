@@ -297,6 +297,7 @@ export const UI_STRINGS: Record<string, string> = {
   "ext.notAvailable": "Translation is not available on this page.",
   "ext.wordsDue": "{count} {words} due",
   "ext.quickReview": "Quick Review",
+  "ext.manageInSettings": "Manage enabled websites in settings",
   "ext.popupDesc":
     "Translate any text, in context. Enable on a site for automatic activation, or right-click selected text to translate anywhere.",
 
