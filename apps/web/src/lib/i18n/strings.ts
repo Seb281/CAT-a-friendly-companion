@@ -362,6 +362,23 @@ export const UI_STRINGS: Record<string, string> = {
   "ext.side.enableSitePrompt": "This site isn't enabled yet. Enable it to translate text by selecting it.",
   "ext.side.enableHere": "Enable on this site",
 
+  // Extension sidepanel - Translate tab
+  "ext.side.translate": "Translate",
+  "ext.side.autoFill": "Auto-fill from page selection",
+  "ext.side.translatingTo": "Translating to {language}",
+  "ext.side.changeInSettings": "Change in Settings",
+  "ext.side.sourceText": "Enter text to translate...",
+  "ext.side.translating": "Translating...",
+  "ext.side.translateButton": "Translate",
+  "ext.side.saveConceptButton": "Save to vocabulary",
+  "ext.side.conceptSaved": "Saved to vocabulary!",
+  "ext.side.conceptAlreadySaved": "Already saved",
+  "ext.side.saveFailed": "Failed to save",
+  "ext.side.translationError": "Translation failed. Try again.",
+  "ext.side.detectedLanguage": "Detected: {language}",
+  "ext.side.addContext": "Add context",
+  "ext.side.contextPlaceholder": "e.g., This is from a cooking recipe...",
+
   // Extension translation popup
   "ext.popup.translationUnavailable": "Translation unavailable",
   "ext.popup.usageLimitDesc":

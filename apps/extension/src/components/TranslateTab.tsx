@@ -11,6 +11,7 @@ import {
   Check,
 } from 'lucide-react'
 import { languageToBCP47 } from '@/utils/languageCodes'
+import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import type { TranslationResponse, EnrichmentResponse } from '@/types/translation'
 import type { Session } from '@supabase/supabase-js'
@@ -32,17 +33,20 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
   const [autoFillEnabled, setAutoFillEnabled] = useState(false)
   const [targetLanguage, setTargetLanguage] = useState('English')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [showContextInput, setShowContextInput] = useState(false)
+  const [personalContext, setPersonalContext] = useState('')
   const requestIdRef = useRef(0)
 
   // Load settings from storage
   useEffect(() => {
     chrome.storage.sync.get(
-      ['targetLanguage', 'sidepanelAutoTranslate'],
+      ['targetLanguage', 'sidepanelAutoTranslate', 'personalContext'],
       (result) => {
         if (result.targetLanguage) setTargetLanguage(result.targetLanguage as string)
         if (result.sidepanelAutoTranslate !== undefined) {
           setAutoFillEnabled(result.sidepanelAutoTranslate as boolean)
         }
+        if (result.personalContext) setPersonalContext(result.personalContext as string)
       },
     )
   }, [])
@@ -175,11 +179,15 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
         text: inputText,
         translation: result.contextualTranslation,
         targetLanguage,
-        sourceLanguage: result.language,
+        sourceLanguage: result.language || '',
+        personalContext: personalContext || '',
       },
       (response: { success: boolean; enrichment?: EnrichmentResponse }) => {
+        if (chrome.runtime.lastError) {
+          setIsEnriching(false)
+          return
+        }
         setIsEnriching(false)
-        if (chrome.runtime.lastError) return
         if (response?.success && response.enrichment) {
           setEnrichment(response.enrichment)
         }
@@ -230,17 +238,43 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
         rows={4}
       />
 
-      {/* Language label + translate button */}
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-muted-foreground">
-          {t('ext.side.translatingTo', { language: targetLanguage })}
-          <button
-            onClick={onSwitchToSettings}
-            className="ml-1 text-primary hover:underline"
-          >
-            {t('ext.side.changeInSettings')}
-          </button>
-        </div>
+      {/* Collapsible context input */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowContextInput(!showContextInput)}
+          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showContextInput ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          {t('ext.side.addContext')}
+        </button>
+        {showContextInput && (
+          <Textarea
+            value={personalContext}
+            onChange={(e) => setPersonalContext(e.target.value)}
+            placeholder={t('ext.side.contextPlaceholder')}
+            className="mt-1 min-h-[50px] resize-none text-xs"
+            rows={2}
+          />
+        )}
+      </div>
+
+      {/* Target language selector */}
+      <div className="flex items-center gap-2">
+        <select
+          value={targetLanguage}
+          onChange={(e) => {
+            setTargetLanguage(e.target.value)
+            chrome.storage.sync.set({ targetLanguage: e.target.value })
+          }}
+          className="h-8 rounded-md bg-secondary px-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring flex-1"
+        >
+          {Object.entries(LANGUAGE_NAMES).map(([code, name]) => (
+            <option key={code} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <Button
@@ -268,6 +302,12 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
           <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
             <p className="text-sm font-medium">{result.contextualTranslation}</p>
           </div>
+
+          {result.language && (
+            <p className="text-[10px] text-muted-foreground">
+              {t('ext.side.detectedLanguage', { language: result.language })}
+            </p>
+          )}
 
           {/* Speak button */}
           <div className="flex items-center gap-2">

@@ -375,6 +375,9 @@ export const UI_STRINGS: Record<string, string> = {
   "ext.side.conceptAlreadySaved": "Already saved",
   "ext.side.saveFailed": "Failed to save",
   "ext.side.translationError": "Translation failed. Try again.",
+  "ext.side.detectedLanguage": "Detected: {language}",
+  "ext.side.addContext": "Add context",
+  "ext.side.contextPlaceholder": "e.g., This is from a cooking recipe...",
 
   // Extension translation popup
   "ext.popup.translationUnavailable": "Translation unavailable",
