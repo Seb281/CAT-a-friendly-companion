@@ -26,6 +26,8 @@ export default function QuickReview({ onBack }: Props) {
     chrome.runtime.sendMessage(
       { action: 'getQuizItems', count: 5 },
       (response) => {
+        console.log('[QuickReview] lastError:', chrome.runtime.lastError)
+        console.log('[QuickReview] response:', response)
         if (chrome.runtime.lastError) {
           setLoading(false)
           return
@@ -38,6 +40,7 @@ export default function QuickReview({ onBack }: Props) {
 
   const handleRate = (quality: number) => {
     const item = items[currentIndex]
+    if (!item) return
     chrome.runtime.sendMessage({
       action: 'submitReview',
       conceptId: item.conceptId,
@@ -138,6 +141,32 @@ export default function QuickReview({ onBack }: Props) {
   }
 
   const item = items[currentIndex]
+
+  if (!item) {
+    return (
+      <div className="w-full">
+        <div className="bg-card text-card-foreground">
+          <div className="flex items-center gap-2 p-6 pb-4">
+            <button
+              onClick={onBack}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <span className="font-semibold text-lg">{t('ext.review.title')}</span>
+          </div>
+          <div className="px-6 pb-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              {t('ext.review.noItems')}
+            </p>
+            <Button variant="outline" className="mt-4" onClick={onBack}>
+              {t('ext.review.back')}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full">

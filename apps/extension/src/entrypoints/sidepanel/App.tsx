@@ -316,6 +316,8 @@ function SavedTab({ session }: { session: Session | null }) {
     chrome.runtime.sendMessage(
       { action: 'fetchSavedConcepts', limit: 10 },
       (response) => {
+        console.log('[SavedTab] lastError:', chrome.runtime.lastError)
+        console.log('[SavedTab] response:', response)
         if (chrome.runtime.lastError) {
           setIsLoading(false)
           setError(chrome.runtime.lastError.message || 'Connection error')
@@ -408,6 +410,7 @@ function SavedTab({ session }: { session: Session | null }) {
 }
 
 function SavedConceptCard({ concept }: { concept: SavedConcept }) {
+  const { t } = useTranslation()
   return (
     <div className="px-3 py-2.5 hover:bg-secondary/50 transition-colors">
       <div className="flex items-start justify-between gap-2">
