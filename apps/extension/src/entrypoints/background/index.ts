@@ -196,6 +196,8 @@ export default defineBackground(() => {
       case 'getAllowedSites':
         chrome.storage.sync.get('allowedSites').then(({ allowedSites = [] }) => {
           sendResponse({ success: true, sites: allowedSites })
+        }).catch(() => {
+          sendResponse({ success: false, sites: [] })
         })
         return true
 
@@ -210,7 +212,28 @@ export default defineBackground(() => {
           const updated = [...sites, pattern]
           await chrome.storage.sync.set({ allowedSites: updated })
           await syncRegisteredContentScripts()
+
+          // One-shot inject into the current active tab so the user
+          // doesn't need to refresh the page after enabling the site
+          const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+          if (activeTab?.id) {
+            try {
+              await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' })
+            } catch {
+              await chrome.scripting.insertCSS({
+                target: { tabId: activeTab.id },
+                files: ['content-scripts/content.css'],
+              })
+              await chrome.scripting.executeScript({
+                target: { tabId: activeTab.id },
+                files: ['content-scripts/content.js'],
+              })
+            }
+          }
+
           sendResponse({ success: true, sites: updated })
+        }).catch(() => {
+          sendResponse({ success: false, sites: [] })
         })
         return true
       }
@@ -223,6 +246,8 @@ export default defineBackground(() => {
           try { await chrome.permissions.remove({ origins: [pattern] }) } catch { /* ok */ }
           await syncRegisteredContentScripts()
           sendResponse({ success: true, sites: updated })
+        }).catch(() => {
+          sendResponse({ success: false, sites: [] })
         })
         return true
       }
@@ -302,6 +327,8 @@ export default defineBackground(() => {
           message.targetLanguage,
           message.sourceLanguage,
           message.personalContext,
+          message.contextBefore,
+          message.contextAfter,
         )
           .then((enrichment) => {
             sendResponse({ success: true, enrichment })
@@ -343,6 +370,8 @@ export default defineBackground(() => {
       case 'CHECK_LOGIN_STATUS':
         isAuthenticated().then((isLoggedIn) => {
           sendResponse({ isLoggedIn })
+        }).catch(() => {
+          sendResponse({ isLoggedIn: false })
         })
         return true
 
@@ -435,7 +464,7 @@ export default defineBackground(() => {
               return
             }
             const data = await response.json()
-            sendResponse({ items: data.items ?? data })
+            sendResponse({ items: data.questions ?? [] })
           })
           .catch(() => {
             sendResponse({ items: [] })
@@ -502,6 +531,8 @@ export default defineBackground(() => {
       case 'GET_EXTENSION_SESSION':
         supabase.auth.getSession().then(({ data: { session } }) => {
           sendResponse({ session: session || null })
+        }).catch(() => {
+          sendResponse({ session: null })
         })
         return true
 
