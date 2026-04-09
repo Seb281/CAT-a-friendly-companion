@@ -33,6 +33,7 @@ const NAV_ITEMS = [
   { labelKey: "nav.translate", icon: Languages, href: "/dashboard/translate" },
   { labelKey: "nav.vocabulary", icon: BookOpen, href: "/dashboard/vocabulary" },
   { labelKey: "nav.review", icon: GraduationCap, href: "/dashboard/review" },
+  { labelKey: "nav.teacher", icon: MessageSquare, href: "/dashboard/tutor" },
   { labelKey: "nav.progress", icon: BarChart3, href: "/dashboard/progress" },
   { labelKey: "nav.tags", icon: Tags, href: "/dashboard/tags" },
 ];
