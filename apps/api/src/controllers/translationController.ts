@@ -5,6 +5,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import { extractJSON, promptBuilder, enrichmentPromptBuilder } from './helpers.ts'
+import { MODELS } from '../config/models.ts'
 import { getAuthenticatedUserEmail, supabase } from '../middleware/supabaseAuth.ts'
 import { userContextData } from '../data/usersData.ts'
 import conceptsData from '../data/conceptsData.ts'
@@ -22,21 +23,21 @@ const google = systemGeminiKey
   : null
 
 export function resolveModel(settings: { customApiKey: string | null; preferredProvider: string | null }) {
-  let model: any = google ? google('gemini-3.1-flash-lite-preview') : null
+  let model: any = google ? google(MODELS.system) : null
 
   if (settings.customApiKey && settings.preferredProvider) {
     if (settings.preferredProvider === 'openai') {
       const openai = createOpenAI({ apiKey: settings.customApiKey })
-      model = openai('gpt-4o')
+      model = openai(MODELS.openai)
     } else if (settings.preferredProvider === 'google') {
       const customGoogle = createGoogleGenerativeAI({ apiKey: settings.customApiKey })
-      model = customGoogle('gemini-2.5-flash')
+      model = customGoogle(MODELS.google)
     } else if (settings.preferredProvider === 'anthropic') {
       const anthropic = createAnthropic({ apiKey: settings.customApiKey })
-      model = anthropic('claude-sonnet-4-5')
+      model = anthropic(MODELS.anthropic)
     } else if (settings.preferredProvider === 'mistral') {
       const mistral = createMistral({ apiKey: settings.customApiKey })
-      model = mistral('mistral-large-latest')
+      model = mistral(MODELS.mistral)
     }
   }
 
@@ -51,7 +52,7 @@ export async function enrichConceptInBackground(
   userEmail?: string
 ) {
   try {
-    let model: any = google ? google('gemini-3.1-flash-lite-preview') : null
+    let model: any = google ? google(MODELS.system) : null
 
     if (userEmail) {
       const settings = await userContextData.retrieveUserContext(userEmail)
@@ -117,7 +118,7 @@ export async function translate(
 
   try {
     // Resolve the model for LLM fallback
-    let model: any = google ? google('gemini-3.1-flash-lite-preview') : null
+    let model: any = google ? google(MODELS.system) : null
 
     try {
       const authHeader = request.headers.authorization
@@ -194,7 +195,7 @@ export async function enrich(
     }
 
     // Resolve LLM model
-    let model: any = google ? google('gemini-3.1-flash-lite-preview') : null
+    let model: any = google ? google(MODELS.system) : null
 
     try {
       const authHeader = request.headers.authorization

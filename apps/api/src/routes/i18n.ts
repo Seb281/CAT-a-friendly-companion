@@ -5,6 +5,7 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '../db/index.ts'
 import { uiTranslationsTable } from '../db/schema.ts'
 import { UI_STRINGS } from './i18n-strings.ts'
+import { MODELS } from '../config/models.ts'
 import { batchTranslateWithDeepL, isDeepLConfigured } from '../services/deeplService.ts'
 import { resolveDeepLTarget } from '../utils/languageCodes.ts'
 
@@ -90,7 +91,7 @@ JSON to translate:
 ${JSON.stringify(UI_STRINGS, null, 2)}`
 
         const { text } = await generateText({
-          model: google('gemini-2.0-flash-lite'),
+          model: google(MODELS.system),
           prompt,
           temperature: 0,
         })
