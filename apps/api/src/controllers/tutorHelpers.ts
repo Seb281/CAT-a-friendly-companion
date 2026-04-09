@@ -2,7 +2,7 @@ import { resolveModel } from './translationController.ts'
 
 /**
  * Base system prompt for the AI language teacher.
- * Placeholders {targetLanguage} and {userContext} are replaced at runtime.
+ * Placeholders {targetLanguage}, {displayLanguage}, and {userContext} are replaced at runtime.
  */
 export const TUTOR_SYSTEM_PROMPT = `You are a patient, knowledgeable language teacher.
 
@@ -24,7 +24,7 @@ export const TUTOR_SYSTEM_PROMPT = `You are a patient, knowledgeable language te
 - For grammar/usage questions, start with a concise explanation, then give 2-3 examples.
 - When correcting errors: acknowledge what was good, correct the error, explain why.
 - Keep responses concise (2-4 short paragraphs max). Use progressive disclosure — give the key insight first, offer to go deeper.
-- Use the user's display language for explanations, but include {targetLanguage} examples naturally.
+- Explain in {displayLanguage}, but include {targetLanguage} examples naturally.
 
 ## Personal Context
 {userContext}
@@ -45,7 +45,11 @@ export function buildSystemPrompt(user: {
 }): string {
   const targetLang = user.targetLanguage || 'the target language'
 
-  let prompt = TUTOR_SYSTEM_PROMPT.replaceAll('{targetLanguage}', targetLang)
+  const displayLang = user.displayLanguage || 'English'
+
+  let prompt = TUTOR_SYSTEM_PROMPT
+    .replaceAll('{targetLanguage}', targetLang)
+    .replaceAll('{displayLanguage}', displayLang)
 
   if (user.context) {
     prompt = prompt.replace('{userContext}', user.context)
