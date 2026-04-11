@@ -411,6 +411,23 @@ export const UI_STRINGS: Record<string, string> = {
   "ext.popup.frequency": "Frequency",
   "ext.popup.related": "Related",
   "ext.popup.translate": "Translate",
+
+  // Keyboard shortcuts help modal
+  "shortcuts.title": "Keyboard shortcuts",
+  "shortcuts.section.navigation": "Navigation",
+  "shortcuts.section.quiz": "Quiz Review",
+  "shortcuts.section.help": "Help",
+  "shortcuts.nav.home": "Go to Home",
+  "shortcuts.nav.vocabulary": "Go to Vocabulary",
+  "shortcuts.nav.review": "Go to Review",
+  "shortcuts.nav.progress": "Go to Progress",
+  "shortcuts.nav.settings": "Go to Settings",
+  "shortcuts.nav.focusSearch": "Focus search",
+  "shortcuts.nav.blur": "Blur input",
+  "shortcuts.quiz.reveal": "Reveal answer",
+  "shortcuts.quiz.rate": "Rate or select option",
+  "shortcuts.quiz.submit": "Submit answer",
+  "shortcuts.help.toggle": "Toggle this dialog",
 };
 
 export type StringKey = keyof typeof UI_STRINGS;
