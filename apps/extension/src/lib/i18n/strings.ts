@@ -50,6 +50,9 @@ export const UI_STRINGS: Record<string, string> = {
   "review.contextRecall": "Context Recall",
   "review.contextRecallDesc":
     "See the original sentence with the word removed. Fill in the blank from memory.",
+  "review.sentenceBuilder": "Sentence Builder",
+  "review.sentenceBuilderDesc":
+    "Rebuild a target-language sentence by tapping word tiles in the right order.",
   "review.noVocabulary": "No vocabulary yet",
   "review.noVocabularyDesc":
     "Save some words to start reviewing. Use the extension to translate and save new vocabulary.",
