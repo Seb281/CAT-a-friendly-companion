@@ -131,10 +131,7 @@ export default function TutorPage() {
     try {
       const res = await fetch(`${API_URL}/tutor/conversations`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error()
       const json = await res.json()
@@ -185,10 +182,7 @@ export default function TutorPage() {
       try {
         const res = await fetch(`${API_URL}/tutor/conversations`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: { Authorization: `Bearer ${token}` },
         })
         if (!res.ok) throw new Error()
         const json = await res.json()

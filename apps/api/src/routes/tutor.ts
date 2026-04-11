@@ -220,10 +220,13 @@ export async function tutorRoutes(
         }
 
         // Stream the response via SSE
+        // Using reply.raw bypasses Fastify, so we must set CORS headers manually.
+        const origin = request.headers.origin
         reply.raw.writeHead(200, {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
+          ...(origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Credentials': 'true' } : {}),
         })
 
         const result = streamText({
