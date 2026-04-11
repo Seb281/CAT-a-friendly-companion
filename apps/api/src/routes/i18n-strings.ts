@@ -61,6 +61,16 @@ export const UI_STRINGS: Record<string, string> = {
   "home.recentWordsEmpty":
     "Your recently saved words will appear here. Use the extension to translate and save new vocabulary.",
   "home.viewAll": "View all",
+  "home.wordOfTheDay.title": "Word of the Day",
+  "home.wordOfTheDay.hearIt": "Hear it",
+  "home.wordOfTheDay.save": "Save to vocabulary",
+  "home.wordOfTheDay.saved": "Saved",
+  "home.wordOfTheDay.alreadySaved": "Already in your vocabulary",
+  "home.wordOfTheDay.saveFailed": "Could not save word",
+  "home.wordOfTheDay.empty":
+    "Set a target language or save a word to start getting daily suggestions.",
+  "home.wordOfTheDay.error": "Could not load suggestion.",
+  "home.wordOfTheDay.speechUnsupported": "Speech synthesis not supported in this browser",
 
   // Review page
   "review.title": "Review",
@@ -259,6 +269,8 @@ export const UI_STRINGS: Record<string, string> = {
 
   // Common
   "common.loading": "Loading...",
+  "common.saving": "Saving...",
+  "common.notSignedIn": "Not signed in.",
   "common.error":
     "Something went wrong loading data. Check your connection and try refreshing.",
   "common.goToDashboard": "Go to Dashboard",

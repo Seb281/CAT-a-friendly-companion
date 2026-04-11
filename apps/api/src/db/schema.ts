@@ -160,6 +160,34 @@ export const feedbackTable = pgTable('feedback', {
 
 export type Feedback = typeof feedbackTable.$inferSelect
 
+/**
+ * One "word of the day" suggestion per user per calendar date. Stored so
+ * the card shows a deterministic, stable suggestion for a given day — the
+ * LLM only runs on the first request of the day, every subsequent visit
+ * reads from this table. Keyed (user, date) to make upserts trivial.
+ */
+export const dailySuggestionsTable = pgTable(
+  'daily_suggestions',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    date: text('date').notNull(), // YYYY-MM-DD in user's local day
+    word: text('word').notNull(),
+    translation: text('translation').notNull(),
+    sourceLanguage: text('source_language').notNull(),
+    targetLanguage: text('target_language').notNull(),
+    rationale: text('rationale'),
+    exampleSentence: text('example_sentence'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.userId, t.date)]
+)
+
+export type DailySuggestion = typeof dailySuggestionsTable.$inferSelect
+export type NewDailySuggestion = typeof dailySuggestionsTable.$inferInsert
+
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert
 
