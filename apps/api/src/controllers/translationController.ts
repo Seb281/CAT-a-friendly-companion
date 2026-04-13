@@ -92,12 +92,18 @@ export async function enrichConceptInBackground(
       ? JSON.stringify(normalized)
       : null
 
+    /** Coerce LLM output to a string — the LLM sometimes returns objects for text fields. */
+    const str = (v: unknown): string | null => {
+      if (v == null) return null
+      return typeof v === 'string' ? v : JSON.stringify(v)
+    }
+
     await conceptsData.enrichConcept(conceptId, {
-      phoneticApproximation: result.phoneticApproximation ?? null,
-      commonUsage: result.commonUsage ?? null,
-      grammarRules: result.grammarRules ?? null,
-      commonness: result.commonness ?? null,
-      fixedExpression: result.fixedExpression === 'no' ? null : result.fixedExpression ?? null,
+      phoneticApproximation: str(result.phoneticApproximation),
+      commonUsage: str(result.commonUsage),
+      grammarRules: str(result.grammarRules),
+      commonness: str(result.commonness),
+      fixedExpression: result.fixedExpression === 'no' ? null : str(result.fixedExpression),
       relatedWords: relatedWordsJson,
     })
   } catch (error) {
