@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import rateLimit from '@fastify/rate-limit'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -35,6 +36,12 @@ export async function startServer() {
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    })
+
+    // Register rate limiting — 100 requests per minute per IP
+    await app.register(rateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
     })
 
     // Global error handlers
