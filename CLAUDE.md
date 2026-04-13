@@ -133,3 +133,25 @@ UI strings are defined in three places that must stay in sync:
 3. `apps/web/src/lib/i18n/strings.ts` — web app's English defaults
 
 When adding/removing/renaming i18n keys: update all three files. Bump `STRINGS_VERSION` in the extension strings file to invalidate cached translations.
+
+## PBR Checklist
+
+### Verification
+- **Quality gate:** `pnpm --filter api build && pnpm --filter context-aware-translator-extension compile && pnpm --filter web lint`
+- **Build:** `pnpm build`
+- **Extension zip:** `pnpm --filter context-aware-translator-extension zip` — verify output is self-contained (no external workspace refs in manifest or bundle)
+
+### Pre-Review Items
+- Imports follow module/package boundaries (shared → app, never app → app)
+- Error paths handled (no silent failures)
+- Types match across layers (API response ↔ shared types ↔ FE consumers)
+- No hardcoded user-facing strings (use i18n keys)
+
+### Cross-Phase Integration
+- Schema changes → `pnpm --filter api db:generate` → review SQL → `db:migrate`
+- New API endpoints → update CORS if new origin needed
+- i18n key changes → bump `STRINGS_VERSION`
+
+### Commit Conventions
+- Short subject line, imperative mood
+- `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` trailer
