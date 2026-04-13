@@ -48,11 +48,9 @@ export default defineContentScript({
       const selection = storedRange.toString()
       chrome.runtime.sendMessage({
         action: 'translate',
-        text: `${storedContext.before} [${selection}] ${storedContext.after}`,
         selection,
         contextBefore: storedContext.before,
         contextAfter: storedContext.after,
-        concept: selection,
       })
     }
 
@@ -167,8 +165,7 @@ export default defineContentScript({
               } else if (message.selectionText) {
                 chrome.runtime.sendMessage({
                   action: 'translate',
-                  text: message.selectionText,
-                  concept: message.selectionText,
+                  selection: message.selectionText,
                 })
               }
             } else {

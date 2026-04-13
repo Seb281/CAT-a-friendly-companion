@@ -13,6 +13,7 @@ import {
   BarChart2,
   X,
 } from 'lucide-react'
+import { parseRelatedWords } from '@gato/shared'
 import { languageToBCP47 } from '@/utils/languageCodes'
 import { LANGUAGE_NAMES } from '@/entrypoints/content/helpers/detectLanguage'
 import { useTranslation } from '@/lib/i18n/useTranslation'
@@ -125,7 +126,7 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
     setContextAfter('')
 
     chrome.runtime.sendMessage(
-      { action: 'translate', text, concept: text },
+      { action: 'translate', selection: text },
       (response) => {
         if (currentId !== requestIdRef.current) return
 
@@ -162,6 +163,8 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
           translation: result.contextualTranslation,
           sourceLanguage: result.language,
           targetLanguage,
+          contextBefore,
+          contextAfter,
           sourceUrl,
         },
       },
@@ -200,6 +203,8 @@ export default function TranslateTab({ session, onSwitchToSettings }: Props) {
         targetLanguage,
         sourceLanguage: result.language || '',
         personalContext: personalContext || '',
+        contextBefore,
+        contextAfter,
       },
       (response: { success: boolean; enrichment?: EnrichmentResponse }) => {
         if (chrome.runtime.lastError) {
@@ -499,15 +504,3 @@ function DetailItem({
   )
 }
 
-function parseRelatedWords(
-  raw?: string | Array<{ word: string; translation: string; relation: string }>,
-): Array<{ word: string; translation: string; relation: string }> {
-  if (!raw) return []
-  if (Array.isArray(raw)) return raw
-  try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}

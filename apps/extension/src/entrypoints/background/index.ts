@@ -275,13 +275,14 @@ export default defineBackground(() => {
             const sourceLanguage = (result.sourceLanguage as string) || ""
             const personalContext = (result.personalContext as string) || ""
 
-            if (message.concept && !message.forceRefresh) {
-              const cached = await lookupConcept(message.concept, sourceLanguage, targetLanguage)
+            if (message.selection && !message.forceRefresh) {
+              const cached = await lookupConcept(message.selection, sourceLanguage, targetLanguage)
               if (cached) {
                 return {
                   translateObject: {
                     contextualTranslation: cached.translation,
                     language: cached.sourceLanguage,
+                    provider: 'deepl' as const,
                     phoneticApproximation: "",
                   },
                   fromCache: true,
@@ -293,11 +294,10 @@ export default defineBackground(() => {
             }
 
             const translateObject = await handleTranslation(
-              message.text,
+              message.selection,
               targetLanguage,
               sourceLanguage,
               personalContext,
-              message.selection,
               message.contextBefore,
               message.contextAfter,
             )
@@ -312,7 +312,7 @@ export default defineBackground(() => {
                 if (spResult.sidepanelOpen) {
                   chrome.storage.session.set({
                     sidepanelTranslation: {
-                      inputText: message.concept || message.text,
+                      inputText: message.selection,
                       result: translateObject,
                       fromCache: !!fromCache,
                       cachedConceptId: cachedConceptId ?? undefined,
@@ -333,7 +333,7 @@ export default defineBackground(() => {
               language?: string
             }
             const historyItem = {
-              concept: message.concept || message.text,
+              concept: message.selection,
               translation: translationObj.contextualTranslation || '',
               sourceLanguage: translationObj.language || sourceLanguage || '',
               targetLanguage: targetLanguage || '',

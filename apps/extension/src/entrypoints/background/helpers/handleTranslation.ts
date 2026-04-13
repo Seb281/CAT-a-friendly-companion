@@ -1,12 +1,15 @@
 const BASE_URL = import.meta.env.VITE_BASE_URL
 import { getSupabaseToken } from "./supabaseAuth"
 
+/**
+ * Sends a translation request to the API.
+ * Uses `selection` as the canonical text field (matches TranslationRequest shape).
+ */
 export default async function handleTranslation(
-  text: string,
+  selection: string,
   targetLanguage: string,
   sourceLanguage: string,
   personalContext: string,
-  selection?: string,
   contextBefore?: string,
   contextAfter?: string,
 ): Promise<object> {
@@ -21,13 +24,12 @@ export default async function handleTranslation(
   }
 
   const body: Record<string, string> = {
-    text: text,
+    selection,
     targetLanguage: targetLanguage || "English",
-    sourceLanguage: sourceLanguage,
+    sourceLanguage: sourceLanguage || "",
     personalContext: personalContext || "",
   }
 
-  if (selection) body.selection = selection
   if (contextBefore) body.contextBefore = contextBefore
   if (contextAfter) body.contextAfter = contextAfter
 

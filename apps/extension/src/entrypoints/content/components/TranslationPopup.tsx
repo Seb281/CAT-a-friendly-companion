@@ -11,6 +11,7 @@ import {
   AlignLeft,
   BarChart2,
 } from 'lucide-react'
+import { parseRelatedWords } from '@gato/shared'
 import catIcon from '@/assets/cat-icon'
 import { languageToBCP47 } from '@/utils/languageCodes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -50,6 +51,7 @@ export default function TranslationPopup({
   const [translation, setTranslation] = useState<TranslationResponse>({
     language: '',
     contextualTranslation: '',
+    provider: 'deepl',
   })
   const [isLoading, setIsLoading] = useState(true)
   const [enrichment, setEnrichment] = useState<EnrichmentResponse | null>(null)
@@ -142,11 +144,9 @@ export default function TranslationPopup({
       chrome.runtime.sendMessage(
         {
           action: 'translate',
-          text: `${contextBefore} [${selection}] ${contextAfter}`,
           selection,
           contextBefore,
           contextAfter,
-          concept: selection,
           forceRefresh: true,
         },
         (response: {
@@ -197,11 +197,9 @@ export default function TranslationPopup({
     chrome.runtime.sendMessage(
       {
         action: 'translate',
-        text: `${contextBefore} [${selection}] ${contextAfter}`,
         selection,
         contextBefore,
         contextAfter,
-        concept: selection,
       },
       (response: {
         success: boolean
@@ -271,11 +269,9 @@ export default function TranslationPopup({
     chrome.runtime.sendMessage(
       {
         action: 'translate',
-        text: `${contextBefore} [${selection}] ${contextAfter}`,
         selection,
         contextBefore,
         contextAfter,
-        concept: selection,
         forceRefresh: true,
       },
       (response: {
@@ -780,37 +776,26 @@ export default function TranslationPopup({
                         )}
 
                         {(() => {
-                          try {
-                            const raw = data.relatedWords
-                            if (!raw) return null
-                            const words: Array<{
-                              word: string
-                              translation: string
-                              relation: string
-                            }> = typeof raw === 'string' ? JSON.parse(raw) : raw
-                            if (!Array.isArray(words) || words.length === 0)
-                              return null
-                            return (
-                              <div className='space-y-1.5'>
-                                <div className='flex items-center gap-2'>
-                                  <Info className='h-4 w-4 text-purple-500' />
-                                  <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
-                                    {t('ext.popup.related')}
-                                  </span>
-                                </div>
-                                <p className='text-sm leading-relaxed pl-6'>
-                                  {words.map((rw, i) => (
-                                    <span key={i}>
-                                      {i > 0 && ', '}
-                                      {rw.word} ({rw.translation})
-                                    </span>
-                                  ))}
-                                </p>
+                          const words = parseRelatedWords(data.relatedWords)
+                          if (words.length === 0) return null
+                          return (
+                            <div className='space-y-1.5'>
+                              <div className='flex items-center gap-2'>
+                                <Info className='h-4 w-4 text-purple-500' />
+                                <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                                  {t('ext.popup.related')}
+                                </span>
                               </div>
-                            )
-                          } catch {
-                            return null
-                          }
+                              <p className='text-sm leading-relaxed pl-6'>
+                                {words.map((rw, i) => (
+                                  <span key={i}>
+                                    {i > 0 && ', '}
+                                    {rw.word} ({rw.translation})
+                                  </span>
+                                ))}
+                              </p>
+                            </div>
+                          )
                         })()}
 
                         {data.commonness && (

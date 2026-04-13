@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { UI_STRINGS, STRINGS_VERSION } from "./strings";
+import { UI_STRINGS, STRINGS_VERSION } from "@gato/shared";
 
 type TranslationFn = (
   key: string,

@@ -1,16 +1,7 @@
-export interface TranslationResponse {
-  language: string
-  contextualTranslation: string
-  provider?: 'deepl' | 'llm'
-  // Present only when LLM fallback was used (all fields in one shot):
-  phoneticApproximation?: string
-  fixedExpression?: string
-  commonUsage?: string
-  grammarRules?: string
-  commonness?: string
-  relatedWords?: string | Array<{ word: string; translation: string; relation: string }>
-}
+export type { TranslationResponse, EnrichmentResponse, RelatedWord } from '@gato/shared'
+import type { TranslationResponse } from '@gato/shared'
 
+/** Extension-internal signal for content script -> sidepanel communication. */
 export interface SidepanelTranslationSignal {
   inputText: string
   result: TranslationResponse
@@ -20,13 +11,4 @@ export interface SidepanelTranslationSignal {
   contextAfter: string
   sourceUrl: string
   timestamp: number
-}
-
-export interface EnrichmentResponse {
-  phoneticApproximation?: string
-  fixedExpression?: string
-  commonUsage?: string
-  grammarRules?: string
-  commonness?: string
-  relatedWords?: Array<{ word: string; translation: string; relation: string }>
 }
