@@ -5,6 +5,6 @@ export type {
   EnrichmentRequest,
   EnrichmentResponse,
   SaveConceptRequest,
-} from './types.js'
+} from './types.ts'
 
-export { parseRelatedWords } from './parseRelatedWords.js'
+export { parseRelatedWords } from './parseRelatedWords.ts'

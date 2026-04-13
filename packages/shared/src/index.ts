@@ -5,9 +5,9 @@ export type {
   EnrichmentRequest,
   EnrichmentResponse,
   SaveConceptRequest,
-} from './translation/types.js'
+} from './translation/types.ts'
 
-export { parseRelatedWords } from './translation/parseRelatedWords.js'
+export { parseRelatedWords } from './translation/parseRelatedWords.ts'
 
-export { UI_STRINGS, STRINGS_VERSION } from './i18n/strings.js'
-export type { StringKey } from './i18n/strings.js'
+export { UI_STRINGS, STRINGS_VERSION } from './i18n/strings.ts'
+export type { StringKey } from './i18n/strings.ts'

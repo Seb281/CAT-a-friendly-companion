@@ -1,4 +1,4 @@
-import type { RelatedWord } from './types.js'
+import type { RelatedWord } from './types.ts'
 
 /**
  * Normalizes relatedWords from any shape the API/LLM might return
