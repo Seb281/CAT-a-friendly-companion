@@ -360,10 +360,19 @@ export default function TranslationPopup({
     icon,
   }: {
     label: string
-    value?: string
+    value?: string | Record<string, unknown>
     icon?: React.ReactNode
   }) {
     if (!value) return null
+
+    /** LLM may return a structured object instead of a string — flatten it for display. */
+    const display =
+      typeof value === 'string'
+        ? value
+        : Object.entries(value)
+            .filter(([, v]) => v != null && v !== '')
+            .map(([k, v]) => `${k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}: ${v}`)
+            .join(', ')
 
     return (
       <div className='space-y-1.5'>
@@ -373,7 +382,7 @@ export default function TranslationPopup({
             {label}
           </span>
         </div>
-        <p className='text-sm leading-relaxed pl-6'>{value}</p>
+        <p className='text-sm leading-relaxed pl-6'>{display}</p>
       </div>
     )
   }

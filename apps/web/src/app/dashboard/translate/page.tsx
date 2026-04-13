@@ -522,13 +522,22 @@ export default function TranslatePage() {
 }
 
 /** Renders a labeled detail row in the enrichment panel. */
-function DetailItem({ label, value }: { label: string; value: string }) {
+function DetailItem({ label, value }: { label: string; value: string | Record<string, unknown> }) {
+  /** LLM may return a structured object instead of a string — flatten it for display. */
+  const display =
+    typeof value === 'string'
+      ? value
+      : Object.entries(value)
+          .filter(([, v]) => v != null && v !== '')
+          .map(([k, v]) => `${k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}: ${v}`)
+          .join(', ');
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
         {label}
       </p>
-      <p className="text-sm">{value}</p>
+      <p className="text-sm">{display}</p>
     </div>
   );
 }

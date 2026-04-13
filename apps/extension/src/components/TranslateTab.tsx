@@ -488,9 +488,18 @@ function DetailItem({
   icon,
 }: {
   label: string
-  value: string
+  value: string | Record<string, unknown>
   icon?: React.ReactNode
 }) {
+  /** LLM may return a structured object instead of a string — flatten it for display. */
+  const display =
+    typeof value === 'string'
+      ? value
+      : Object.entries(value)
+          .filter(([, v]) => v != null && v !== '')
+          .map(([k, v]) => `${k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}: ${v}`)
+          .join(', ')
+
   return (
     <div className='space-y-1'>
       <div className='flex items-center gap-2'>
@@ -499,7 +508,7 @@ function DetailItem({
           {label}
         </p>
       </div>
-      <p className={`text-sm ${icon ? 'pl-6' : ''}`}>{value}</p>
+      <p className={`text-sm ${icon ? 'pl-6' : ''}`}>{display}</p>
     </div>
   )
 }
