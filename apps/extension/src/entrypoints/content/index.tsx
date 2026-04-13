@@ -8,7 +8,7 @@ import detectPageLanguage from "./helpers/detectLanguage"
 import tooltip from "./components/Tooltip"
 
 export default defineContentScript({
-  matches: ["https://context-aware-translator-dashboard.vercel.app/*"],
+  matches: ["https://gato.giupana.com/*"],
   registration: 'runtime',
   main() {
     try { initSentry({ context: "content" }) } catch { /* Sentry unavailable — extension continues */ }

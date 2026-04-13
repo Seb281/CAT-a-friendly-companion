@@ -285,7 +285,7 @@ export async function GET() {
             color: 'rgba(255,255,255,0.25)',
           }}
         >
-          <span>gato.vercel.app</span>
+          <span>gato.giupana.com</span>
           <span>{today}</span>
         </div>
       </div>

@@ -24,7 +24,7 @@ export default defineConfig({
       128: 'icon/icon-128.png',
     },
     permissions: ['storage', 'tabs', 'activeTab', 'scripting', 'contextMenus', 'alarms', 'notifications', 'sidePanel'],
-    host_permissions: ['https://context-aware-translator-dashboard.vercel.app/*'],
+    host_permissions: ['https://gato.giupana.com/*'],
     optional_host_permissions: ['https://*/*', 'http://*/*'],
     commands: {
       '_execute_side_panel': {
