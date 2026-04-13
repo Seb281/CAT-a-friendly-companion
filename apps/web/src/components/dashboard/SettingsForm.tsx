@@ -197,7 +197,7 @@ export default function SettingsForm() {
         personalContext,
         preferredProvider,
         dailyGoal,
-        theme,
+        theme: theme ?? null,
         displayLanguage,
       };
 
