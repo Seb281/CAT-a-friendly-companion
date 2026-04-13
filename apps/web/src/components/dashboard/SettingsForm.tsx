@@ -99,7 +99,7 @@ export default function SettingsForm() {
             setMaskedApiKey(data.maskedApiKey);
           }
           // Sync theme from API (source of truth)
-          if (data.theme && data.theme !== theme) {
+          if (data.theme) {
             setTheme(data.theme);
           }
         }
@@ -111,12 +111,10 @@ export default function SettingsForm() {
     }
 
     fetchSettings();
-  }, [supabase, API_URL]);
+  }, [supabase, API_URL, setTheme]);
 
   // Communicate with extension via postMessage for allowed sites
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-
     function handleMessage(event: MessageEvent) {
       if (event.origin !== window.location.origin) return;
       if (event.data?.type === "ALLOWED_SITES_RESPONSE") {
@@ -131,7 +129,7 @@ export default function SettingsForm() {
     window.postMessage({ type: "GET_ALLOWED_SITES" }, window.location.origin);
 
     // If no response after 500ms, extension is not connected
-    timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setExtensionConnected((prev) => prev); // keep current state
     }, 500);
 
@@ -193,7 +191,7 @@ export default function SettingsForm() {
 
       const token = session.access_token;
 
-      const payload: any = {
+      const payload: Record<string, string | number | null> = {
         name: firstName.trim() || null,
         targetLanguage,
         personalContext,
@@ -575,7 +573,7 @@ export default function SettingsForm() {
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <p>
                 Your API key is encrypted and stored securely. We only use it to generate your translations.
-                If you don't provide a key, we'll use our default system (Google Gemini 3.1 Flash Lite).
+                If you don&apos;t provide a key, we&apos;ll use our default system (Google Gemini 3.1 Flash Lite).
               </p>
             </div>
           </div>

@@ -17,9 +17,9 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-display text-2xl text-foreground mb-3">1. Introduction</h2>
             <p>
-              This Privacy Policy describes how Gato ("we", "our", or "us") collects, uses, and
+              This Privacy Policy describes how Gato (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) collects, uses, and
               protects information when you use the Gato Chrome extension and its companion web
-              dashboard (collectively, the "Service"). By using the Service you agree to the practices described here.
+              dashboard (collectively, the &quot;Service&quot;). By using the Service you agree to the practices described here.
             </p>
           </section>
 
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <span className="font-medium text-foreground">Personal context string</span> — an optional description
-                you provide (e.g. "I am an intermediate Spanish learner") that personalises translations. Stored in
+                you provide (e.g. &quot;I am an intermediate Spanish learner&quot;) that personalises translations. Stored in
                 Chrome sync storage and on our server.
               </li>
               <li>
@@ -190,7 +190,7 @@ export default function PrivacyPolicyPage() {
                 context menu; it is not present on pages passively.
               </li>
               <li>
-                <span className="font-medium text-foreground">contextMenus</span> — adds a "Translate" option to the
+                <span className="font-medium text-foreground">contextMenus</span> — adds a &quot;Translate&quot; option to the
                 right-click menu so you can translate selected text on any page without pre-enabling the site.
               </li>
               <li>
@@ -257,7 +257,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-display text-2xl text-foreground mb-3">9. Changes to This Policy</h2>
             <p>
-              We may update this policy from time to time. When we do, we will revise the "Last updated" date at the
+              We may update this policy from time to time. When we do, we will revise the &quot;Last updated&quot; date at the
               top of this page. Continued use of the Service after changes are posted constitutes your acceptance of the
               revised policy. For material changes we will make reasonable efforts to notify you (e.g. via the
               dashboard).

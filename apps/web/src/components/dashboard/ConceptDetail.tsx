@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import MasteryBadge from "./MasteryBadge";
-import TagBadge from "./TagBadge";
+
 import TagSelector from "./TagSelector";
 
 type Tag = {

@@ -39,7 +39,6 @@ import {
   ChevronRight,
   X,
   Tags,
-  Check,
   CheckSquare,
   Square,
   AlertCircle,

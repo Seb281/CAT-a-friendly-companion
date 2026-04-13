@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Flame, Target, Trophy, BookOpen, Loader2, TrendingUp } from "lucide-react";
+import { BarChart3, Loader2, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import AccuracyChart from "@/components/dashboard/AccuracyChart";

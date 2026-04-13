@@ -27,7 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const NAV_ITEMS = [
@@ -56,20 +56,19 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("sidebar-collapsed");
-    if (stored === "true") setCollapsed(true);
-  }, []);
+  const [collapsed, setCollapsed] = useState(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("sidebar-collapsed") === "true"
+      : false
+  );
+  const [settingsToggled, setSettingsToggled] = useState(false);
 
   /** Auto-expand settings group when navigating to a child route. */
-  useEffect(() => {
-    if (SETTINGS_PATHS.some((p) => pathname.startsWith(p))) {
-      setSettingsOpen(true);
-    }
-  }, [pathname]);
+  const isInSettingsPath = useMemo(
+    () => SETTINGS_PATHS.some((p) => pathname.startsWith(p)),
+    [pathname]
+  );
+  const settingsOpen = settingsToggled || isInSettingsPath;
 
   function toggleCollapse() {
     const next = !collapsed;
@@ -184,7 +183,7 @@ export default function Sidebar({
               {/* Settings toggle */}
               <button
                 type="button"
-                onClick={() => setSettingsOpen((prev) => !prev)}
+                onClick={() => setSettingsToggled((prev) => !prev)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 w-full",
                   settingsActive

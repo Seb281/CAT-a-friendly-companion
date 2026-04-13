@@ -52,7 +52,7 @@ export default function ExportButton() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       toast.error("Export failed. Please try again.");
     } finally {
       setExporting(false);

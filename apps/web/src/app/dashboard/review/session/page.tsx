@@ -31,7 +31,6 @@ export default function ReviewSessionPage() {
     isComplete,
     startSession,
     submitAnswer,
-    resetSession,
   } = useReviewSession();
 
   const hasStarted = useRef(false);

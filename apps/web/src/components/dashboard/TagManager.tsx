@@ -60,32 +60,31 @@ export default function TagManager() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchTags();
-  }, []);
+    async function fetchTags() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false);
+          return;
+        }
 
-  async function fetchTags() {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
+        const res = await fetch(`${API_URL}/tags`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTags(data.tags);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tags:", error);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const res = await fetch(`${API_URL}/tags`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTags(data.tags);
-      }
-    } catch (error) {
-      console.error("Failed to fetch tags:", error);
-    } finally {
-      setLoading(false);
     }
-  }
+    fetchTags();
+  }, [supabase, API_URL]);
 
   async function handleCreate() {
     if (!newName.trim()) return;

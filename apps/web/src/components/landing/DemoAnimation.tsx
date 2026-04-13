@@ -27,7 +27,6 @@ export default function DemoAnimation() {
       <div className="max-w-5xl mx-auto px-4">
         <div className="relative rounded-2xl border bg-card shadow-lg overflow-hidden aspect-video">
           {videoOk ? (
-            // eslint-disable-next-line jsx-a11y/media-has-caption
             <video
               autoPlay
               muted
