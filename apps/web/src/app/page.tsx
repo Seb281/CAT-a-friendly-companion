@@ -83,7 +83,7 @@ export default async function Home() {
             alt="Gato"
             width={24}
             height={24}
-            className="hue-rotate-[30deg] saturate-[1.1]"
+            className=""
           />
           Gato
         </Link>
@@ -124,7 +124,7 @@ export default async function Home() {
               alt=""
               width={36}
               height={36}
-              className="absolute bottom-3 -right-12 hue-rotate-[30deg] saturate-[1.1]"
+              className="absolute bottom-3 -right-12"
               aria-hidden="true"
             />
           </div>
@@ -290,7 +290,7 @@ export default async function Home() {
             alt="Gato"
             width={20}
             height={20}
-            className="hue-rotate-[30deg] saturate-[1.1]"
+            className=""
           />
           Gato
         </Link>

@@ -128,7 +128,7 @@ export default function Sidebar({
         {/* Logo */}
         <div className="flex items-center gap-2 px-4 h-14 shrink-0 mb-4">
           <Link href="/dashboard" className="flex items-center gap-2 font-bold min-w-0">
-            <Image src="/cat-icon.png" alt="Gato" width={20} height={20} className="shrink-0 hue-rotate-[30deg] saturate-[1.1]" />
+            <Image src="/cat-icon.png" alt="Gato" width={20} height={20} className="shrink-0" />
             {!collapsed && <span className="truncate text-sidebar-foreground tracking-tight">Gato</span>}
           </Link>
         </div>

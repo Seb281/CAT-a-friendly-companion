@@ -35,7 +35,7 @@ export default function SignInPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <Link href="/" className="mb-8 flex items-center gap-3 text-2xl">
-        <Image src="/cat-icon.png" alt="Gato" width={32} height={32} className="hue-rotate-[30deg] saturate-[1.1]" />
+        <Image src="/cat-icon.png" alt="Gato" width={32} height={32} className="" />
         <span className="font-display text-foreground">Gato</span>
       </Link>
 

@@ -431,7 +431,6 @@ export default function TranslationPopup({
                 src={catIcon}
                 alt='Gato'
                 className='h-5 w-5'
-                style={{ filter: 'hue-rotate(30deg) saturate(1.1)' }}
               />
               <CardTitle className='font-bold tracking-tight'>Gato</CardTitle>
             </div>
