@@ -14,7 +14,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   }),
   manifest: {
-    name: 'CAT — Translate & Learn in Context',
+    name: 'Gato — Translate & Learn in Context',
     description:
       'Learn languages while you browse — select text for translations, pronunciation, grammar notes, and spaced repetition.',
     version: '2.0.0',

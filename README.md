@@ -1,4 +1,4 @@
-# Context-Aware Translator
+# Gato
 
 A Chrome extension for learning languages in context. Translate text on any webpage with LLM-powered, context-aware translations — then build lasting vocabulary through enrichment data, saved concepts, and spaced repetition review.
 
