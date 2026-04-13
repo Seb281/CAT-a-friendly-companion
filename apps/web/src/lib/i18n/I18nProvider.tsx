@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { UI_STRINGS, STRINGS_VERSION } from "./strings";
+import { UI_STRINGS, STRINGS_VERSION } from "@gato/shared";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();

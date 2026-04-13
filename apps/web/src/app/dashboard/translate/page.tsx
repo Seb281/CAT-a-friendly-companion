@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { languageToBCP47 } from "./languageCodes";
+import { parseRelatedWords } from "@gato/shared";
+import type { TranslationResponse, EnrichmentResponse } from "@gato/shared";
 
 const LANGUAGES = [
   "English", "Spanish", "French", "German", "Italian", "Portuguese",
@@ -32,29 +34,6 @@ const LANGUAGES = [
   "Turkish", "Greek", "Hebrew", "Thai", "Vietnamese", "Indonesian",
   "Malay", "Czech", "Slovak", "Hungarian", "Romanian", "Bulgarian",
 ];
-
-interface TranslationResult {
-  language: string;
-  contextualTranslation: string;
-  provider?: "deepl" | "llm";
-  phoneticApproximation?: string;
-  fixedExpression?: string;
-  commonUsage?: string;
-  grammarRules?: string;
-  commonness?: string;
-  relatedWords?:
-    | string
-    | Array<{ word: string; translation: string; relation: string }>;
-}
-
-interface EnrichmentResult {
-  phoneticApproximation?: string;
-  fixedExpression?: string;
-  commonUsage?: string;
-  grammarRules?: string;
-  commonness?: string;
-  relatedWords?: Array<{ word: string; translation: string; relation: string }>;
-}
 
 export default function TranslatePage() {
   const supabase = useMemo(() => createClient(), []);
@@ -73,10 +52,10 @@ export default function TranslatePage() {
   // This maps to the API's `contextBefore` field.
   const [surroundingContext, setSurroundingContext] = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
-  const [result, setResult] = useState<TranslationResult | null>(null);
+  const [result, setResult] = useState<TranslationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false);
-  const [enrichment, setEnrichment] = useState<EnrichmentResult | null>(null);
+  const [enrichment, setEnrichment] = useState<EnrichmentResponse | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [saveState, setSaveState] = useState<
@@ -199,6 +178,7 @@ export default function TranslatePage() {
           translation: result.contextualTranslation,
           sourceLanguage: result.language,
           targetLanguage,
+          contextBefore: surroundingContext,
         }),
       });
 
@@ -541,6 +521,7 @@ export default function TranslatePage() {
   );
 }
 
+/** Renders a labeled detail row in the enrichment panel. */
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -550,17 +531,4 @@ function DetailItem({ label, value }: { label: string; value: string }) {
       <p className="text-sm">{value}</p>
     </div>
   );
-}
-
-function parseRelatedWords(
-  raw?: string | Array<{ word: string; translation: string; relation: string }>
-): Array<{ word: string; translation: string; relation: string }> {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
