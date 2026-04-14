@@ -916,7 +916,7 @@ function SettingsTab({ session }: { session: Session | null }) {
           variant='outline'
           className='w-full'
           onClick={() =>
-            chrome.tabs.create({ url: `${DASHBOARD_URL}/dashboard/feedback` })
+            chrome.tabs.create({ url: `${DASHBOARD_URL}/feedback` })
           }
         >
           <MessageSquare className='h-4 w-4 mr-2' />
