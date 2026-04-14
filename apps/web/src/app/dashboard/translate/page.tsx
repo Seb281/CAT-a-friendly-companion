@@ -20,6 +20,8 @@ import {
   ChevronUp,
   Bookmark,
   Check,
+  Info,
+  BarChart2,
 } from 'lucide-react'
 import { useTranslation } from '@/lib/i18n/useTranslation'
 import { languageToBCP47 } from './languageCodes'
@@ -491,6 +493,16 @@ export default function TranslatePage() {
                       <DetailItem
                         label={t('translate.pronunciation')}
                         value={enrichment.phoneticApproximation}
+                        icon={
+                          <button
+                            onClick={() =>
+                              speakText(sourceText, result.language || '')
+                            }
+                            className='text-muted-foreground hover:text-foreground transition-colors'
+                          >
+                            <Volume2 className='h-4 w-4' />
+                          </button>
+                        }
                       />
                     )}
                     {enrichment.fixedExpression &&
@@ -498,6 +510,7 @@ export default function TranslatePage() {
                         <DetailItem
                           label={t('translate.expression')}
                           value={enrichment.fixedExpression}
+                          icon={<Info className='h-4 w-4 text-blue-500' />}
                         />
                       )}
                     {enrichment.commonUsage &&
@@ -505,34 +518,25 @@ export default function TranslatePage() {
                         <DetailItem
                           label={t('translate.usageNote')}
                           value={enrichment.commonUsage}
+                          icon={<Info className='h-4 w-4 text-amber-500' />}
                         />
                       )}
                     {enrichment.grammarRules && (
                       <DetailItem
                         label={t('translate.grammar')}
                         value={enrichment.grammarRules}
+                        icon={<Info className='h-4 w-4 text-green-500' />}
                       />
                     )}
-                    {enrichment.commonness &&
-                      (() => {
-                        /** Localize enum/numeric values; fall back to raw for unmappable legacy rows. */
-                        const key = normalizeFrequency(enrichment.commonness)
-                        const display = key ? t(key) : enrichment.commonness
-                        return (
-                          <div>
-                            <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1'>
-                              {t('translate.frequency')}
-                            </p>
-                            <Badge variant='secondary'>{display}</Badge>
-                          </div>
-                        )
-                      })()}
                     {parsedRelated.length > 0 && (
-                      <div>
-                        <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1'>
-                          {t('translate.relatedWords')}
-                        </p>
-                        <div className='flex flex-wrap gap-2'>
+                      <div className='space-y-1'>
+                        <div className='flex items-center gap-2'>
+                          <Info className='h-4 w-4 text-purple-500' />
+                          <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                            {t('translate.relatedWords')}
+                          </p>
+                        </div>
+                        <div className='flex flex-wrap gap-2 ml-6'>
                           {parsedRelated.map((r, i) => (
                             <Badge key={i} variant='outline'>
                               {r.word} — {r.translation}
@@ -541,16 +545,25 @@ export default function TranslatePage() {
                         </div>
                       </div>
                     )}
-                    {enrichment.commonness && (
-                      <div>
-                        <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1'>
-                          {t('translate.frequency')}
-                        </p>
-                        <Badge variant='secondary'>
-                          {enrichment.commonness}
-                        </Badge>
-                      </div>
-                    )}
+                    {enrichment.commonness &&
+                      (() => {
+                        /** Localize enum/numeric values; fall back to raw for unmappable legacy rows. */
+                        const key = normalizeFrequency(enrichment.commonness)
+                        const display = key ? t(key) : enrichment.commonness
+                        return (
+                          <div className='space-y-1'>
+                            <div className='flex items-center gap-2'>
+                              <BarChart2 className='h-4 w-4 text-muted-foreground' />
+                              <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                                {t('translate.frequency')}
+                              </p>
+                            </div>
+                            <Badge variant='secondary' className='ml-6'>
+                              {display}
+                            </Badge>
+                          </div>
+                        )
+                      })()}
                   </>
                 )}
               </div>
@@ -562,13 +575,19 @@ export default function TranslatePage() {
   )
 }
 
-/** Renders a labeled detail row in the enrichment panel. */
+/**
+ * Renders a labeled detail row in the enrichment panel.
+ * Mirrors the extension sidepanel layout: icon + uppercase label on one row,
+ * value indented beneath so everything lines up with the icon column.
+ */
 function DetailItem({
   label,
   value,
+  icon,
 }: {
   label: string
   value: string | Record<string, unknown>
+  icon?: React.ReactNode
 }) {
   /** LLM may return a structured object instead of a string — flatten it for display. */
   const display =
@@ -583,11 +602,14 @@ function DetailItem({
           .join(', ')
 
   return (
-    <div>
-      <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1'>
-        {label}
-      </p>
-      <p className='text-sm'>{display}</p>
+    <div className='space-y-1'>
+      <div className='flex items-center gap-2'>
+        {icon}
+        <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+          {label}
+        </p>
+      </div>
+      <p className={`text-sm ${icon ? 'pl-6' : ''}`}>{display}</p>
     </div>
   )
 }
