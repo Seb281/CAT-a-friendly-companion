@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "dev:extension": "turbo dev --filter=context-aware-translator-extension",
+    "dev:extension": "turbo dev --filter=./apps/extension",
     "dev:api": "turbo dev --filter=api",
-    "build:extension": "turbo build --filter=context-aware-translator-extension",
+    "build:extension": "turbo build --filter=./apps/extension",
     "build:api": "turbo build --filter=api"
   },
   "keywords": [],
