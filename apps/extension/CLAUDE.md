@@ -142,5 +142,5 @@ Rules:
 ### Turborepo Integration
 
 Part of a monorepo managed by Turborepo:
-- Run from root: `pnpm --filter context-aware-translator-extension dev`
+- Run from root: `pnpm --filter ./apps/extension dev`
 - Or from this directory: `pnpm dev`
