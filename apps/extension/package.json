@@ -1,8 +1,8 @@
 {
-  "name": "context-aware-translator-extension",
-  "description": "Chrome extension for context-aware text translation",
-  "private": true,
-  "version": "1.0.0",
+  "name": "Gato — Translate & Learn in Context",
+  "description": "Chrome extension for context-aware text translation and language learning",
+  "private": false,
+  "version": "2.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
