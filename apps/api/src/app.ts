@@ -9,6 +9,7 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+import { registerSwagger } from './plugins/swagger.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -34,6 +35,8 @@ export async function buildApp(opts?: { logger?: boolean }): Promise<FastifyInst
   // never 500s a live request. Response validation is performed warn-only by the onSend
   // hook registered in plugins/responseValidation.ts.
   app.setSerializerCompiler(() => (data) => JSON.stringify(data))
+
+  await registerSwagger(app)
 
   const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
     .split(',')
