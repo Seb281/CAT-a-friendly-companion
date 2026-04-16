@@ -10,6 +10,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import { registerSwagger } from './plugins/swagger.ts'
+import { registerResponseValidation } from './plugins/responseValidation.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -37,6 +38,7 @@ export async function buildApp(opts?: { logger?: boolean }): Promise<FastifyInst
   app.setSerializerCompiler(() => (data) => JSON.stringify(data))
 
   await registerSwagger(app)
+  registerResponseValidation(app)
 
   const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
     .split(',')
