@@ -1,4 +1,4 @@
-import Fastify from 'fastify'
+import Fastify, { type FastifyInstance } from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import dotenv from 'dotenv'
@@ -18,59 +18,69 @@ import { suggestionsRoutes } from './routes/suggestions.ts'
 
 const PORT = parseInt(process.env.PORT || '3001', 10)
 
-const app = Fastify({
-  logger: true,
-})
+/**
+ * Builds a fully-configured Fastify instance without calling `listen`.
+ *
+ * Used both by `startServer()` for production and by integration tests that
+ * invoke routes via `app.inject()`. Keep this pure — no network side effects.
+ *
+ * Pass `{ logger: false }` (via `opts`) from tests to keep output quiet.
+ */
+export async function buildApp(opts?: { logger?: boolean }): Promise<FastifyInstance> {
+  const app = Fastify({ logger: opts?.logger ?? true })
+
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+
+  await app.register(cors, {
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true)
+      if (origin.startsWith('chrome-extension://')) return cb(null, true)
+      if (allowedOrigins.includes(origin)) return cb(null, true)
+      cb(new Error('Not allowed by CORS'), false)
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+  })
+
+  app.setErrorHandler((error: { statusCode?: number; message: string }, request, reply) => {
+    request.log.error(error)
+    const statusCode = error.statusCode ?? 500
+    reply.code(statusCode).send({
+      error: statusCode < 500 ? error.message : 'Internal Server Error',
+    })
+  })
+
+  app.setNotFoundHandler((_request, reply) => {
+    reply.code(404).send({ error: 'Route not found' })
+  })
+
+  await app.register(extensionRoutes)
+  await app.register(tagRoutes)
+  await app.register(reviewRoutes)
+  await app.register(sentenceBuilderRoutes)
+  await app.register(suggestionsRoutes)
+  await app.register(statsRoutes)
+  await app.register(i18nRoutes)
+
+  return app
+}
 
 export async function startServer() {
+  const app = await buildApp()
+
   try {
-    // Register CORS
-    const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean)
-    await app.register(cors, {
-      origin: (origin, cb) => {
-        if (!origin) return cb(null, true)
-        if (origin.startsWith('chrome-extension://')) return cb(null, true)
-        if (allowedOrigins.includes(origin)) return cb(null, true)
-        cb(new Error('Not allowed by CORS'), false)
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    })
-
-    // Register rate limiting — 100 requests per minute per IP
-    await app.register(rateLimit, {
-      max: 100,
-      timeWindow: '1 minute',
-    })
-
-    // Global error handlers
-    app.setErrorHandler((error: { statusCode?: number; message: string }, request, reply) => {
-      request.log.error(error)
-      const statusCode = error.statusCode ?? 500
-      reply.code(statusCode).send({
-        error: statusCode < 500 ? error.message : 'Internal Server Error',
-      })
-    })
-
-    app.setNotFoundHandler((_request, reply) => {
-      reply.code(404).send({ error: 'Route not found' })
-    })
-
-    // Register routes
-    await app.register(extensionRoutes)
-    await app.register(tagRoutes)
-    await app.register(reviewRoutes)
-    await app.register(sentenceBuilderRoutes)
-    await app.register(suggestionsRoutes)
-    await app.register(statsRoutes)
-    await app.register(i18nRoutes)
-
-    // Start server
     await app.listen({ port: PORT, host: '0.0.0.0' })
     app.log.info(`Server is running on port ${PORT}`)
 
-    // Graceful shutdown
     const shutdown = async () => {
       await app.close()
       process.exit(0)
@@ -84,4 +94,4 @@ export async function startServer() {
   }
 }
 
-export default app
+export default buildApp
