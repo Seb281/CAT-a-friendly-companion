@@ -13,7 +13,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "spec:generate": "tsx scripts/generateOpenAPI.ts"
   },
   "keywords": [],
   "author": "",

@@ -78,7 +78,7 @@ describe('responseValidation plugin', () => {
     app.get('/text', {
       schema: { response: { 200: z.object({ value: z.number() }) } },
     }, async (_req, reply) => {
-      reply.type('text/plain').send('plain text')
+      ;(reply as any).type('text/plain').send('plain text')
     })
 
     const res = await app.inject({ method: 'GET', url: '/text' })
