@@ -1110,6 +1110,82 @@
           "conceptsAdded"
         ]
       },
+      "WordOfTheDayInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/WordOfTheDayInput",
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exampleSentence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "rationale",
+          "exampleSentence",
+          "date"
+        ]
+      },
+      "RelatedSuggestionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/RelatedSuggestionInput",
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "exampleSentence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "rationale",
+          "exampleSentence"
+        ]
+      },
       "ErrorResponse": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "#/components/schemas/ErrorResponse",
@@ -2264,6 +2340,84 @@
           "reviewsCompleted",
           "correctReviews",
           "conceptsAdded"
+        ],
+        "additionalProperties": false
+      },
+      "WordOfTheDay": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/WordOfTheDay",
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exampleSentence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "rationale",
+          "exampleSentence",
+          "date"
+        ],
+        "additionalProperties": false
+      },
+      "RelatedSuggestion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/RelatedSuggestion",
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "exampleSentence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "rationale",
+          "exampleSentence"
         ],
         "additionalProperties": false
       }
@@ -3488,18 +3642,133 @@
     },
     "/suggestions/word-of-the-day": {
       "get": {
+        "summary": "Today's suggested vocabulary word",
+        "tags": [
+          "suggestions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "suggestion": {
+                      "$ref": "#/components/schemas/WordOfTheDay"
+                    }
+                  },
+                  "required": [
+                    "suggestion"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/suggestions/related-to-vocab": {
       "get": {
+        "summary": "Vocabulary suggestions related to saved concepts",
+        "tags": [
+          "suggestions"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 20
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RelatedSuggestion"
+                      }
+                    }
+                  },
+                  "required": [
+                    "suggestions"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
