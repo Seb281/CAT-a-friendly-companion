@@ -9,10 +9,15 @@ export const ErrorResponseSchema = z.object({
 /** A positive integer, coerced from strings when it arrives via path or query. */
 export const NumericIdSchema = z.coerce.number().int().positive()
 
-/** Params shape for routes with a single `:id`. */
+/**
+ * Params shape for routes with a single `:id`. Not `.meta()`-tagged — swagger's
+ * params emitter expects an inlined object (it splays each property into its
+ * own parameter entry), and a `$ref` would make `resolveCommonParams` fall
+ * over when it walks the nested path-parameter tree.
+ */
 export const NumericIdParamSchema = z.object({
   id: NumericIdSchema,
-}).meta({ id: 'NumericIdParam' })
+})
 
 /** Optional positive integer querystring (limit/offset/page/days/count all follow this). */
 export const PositiveIntQuerySchema = z.object({
