@@ -7391,10 +7391,6 @@
     {
       "url": "https://api.gato.app",
       "description": "Production"
-    },
-    {
-      "url": "http://localhost:3001",
-      "description": "Local development"
     }
   ],
   "tags": [

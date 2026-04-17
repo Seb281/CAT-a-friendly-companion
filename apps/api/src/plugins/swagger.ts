@@ -10,6 +10,18 @@ import { jsonSchemaTransform, jsonSchemaTransformObject } from 'fastify-type-pro
  * requests from the browser.
  */
 export async function registerSwagger(app: FastifyInstance): Promise<void> {
+  const isProd = process.env.NODE_ENV === 'production'
+
+  // Swagger UI picks the first entry in `servers` as the default "Try it out"
+  // target. Production ships a prod-only list; dev puts localhost first so the
+  // dropdown doesn't fire CORS-blocked requests at api.gato.app by default.
+  const servers = isProd
+    ? [{ url: 'https://api.gato.app', description: 'Production' }]
+    : [
+        { url: 'http://localhost:3001', description: 'Local development' },
+        { url: 'https://api.gato.app', description: 'Production' },
+      ]
+
   await app.register(swagger, {
     openapi: {
       openapi: '3.1.0',
@@ -18,10 +30,7 @@ export async function registerSwagger(app: FastifyInstance): Promise<void> {
         version: '1.0.0',
         description: 'Translation, vocabulary, and spaced-repetition API powering the Gato Chrome extension and web dashboard.',
       },
-      servers: [
-        { url: 'https://api.gato.app', description: 'Production' },
-        { url: 'http://localhost:3001', description: 'Local development' },
-      ],
+      servers,
       components: {
         securitySchemes: {
           bearerAuth: {
@@ -47,8 +56,6 @@ export async function registerSwagger(app: FastifyInstance): Promise<void> {
     transform: jsonSchemaTransform,
     transformObject: jsonSchemaTransformObject,
   })
-
-  const isProd = process.env.NODE_ENV === 'production'
 
   await app.register(swaggerUi, {
     routePrefix: '/docs',

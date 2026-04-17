@@ -19,6 +19,9 @@ async function main() {
   // Minimal env so supabaseAuth.ts module-init doesn't throw.
   process.env.SUPABASE_URL ??= 'http://unused.local/supabase'
   process.env.SUPABASE_SECRET_KEY ??= 'unused-during-spec-generation'
+  // Force prod-shaped spec: servers list advertises only api.gato.app,
+  // matching what consumers of the committed openapi.json expect.
+  process.env.NODE_ENV = 'production'
 
   const app = await buildApp({ logger: false })
   await app.ready()
