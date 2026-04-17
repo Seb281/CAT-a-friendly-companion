@@ -20,6 +20,9 @@ async function main() {
   // hoisted above these assignments, so we use a dynamic import instead.
   if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'http://unused.local/supabase'
   if (!process.env.SUPABASE_SECRET_KEY) process.env.SUPABASE_SECRET_KEY = 'unused-during-spec-generation'
+  // db/index.ts constructs a postgres client at module load; no connection
+  // is opened until a query runs, so a syntactically-valid URL is enough.
+  if (!process.env.DATABASE_URL) process.env.DATABASE_URL = 'postgres://unused:unused@127.0.0.1:5432/unused'
   // Force prod-shaped spec: servers list advertises only api.gato.app,
   // matching what consumers of the committed openapi.json expect.
   process.env.NODE_ENV = 'production'
