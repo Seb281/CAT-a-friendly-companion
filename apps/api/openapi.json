@@ -15,8 +15,6 @@
     },
     "schemas": {
       "TranslationRequestInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/TranslationRequestInput",
         "type": "object",
         "properties": {
           "selection": {
@@ -48,8 +46,6 @@
         ]
       },
       "RelatedWordInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/RelatedWordInput",
         "type": "object",
         "properties": {
           "word": {
@@ -69,8 +65,6 @@
         ]
       },
       "TranslationResponseInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/TranslationResponseInput",
         "type": "object",
         "properties": {
           "contextualTranslation": {
@@ -122,8 +116,6 @@
         ]
       },
       "EnrichmentRequestInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/EnrichmentRequestInput",
         "type": "object",
         "properties": {
           "text": {
@@ -158,8 +150,6 @@
         ]
       },
       "EnrichmentResponseInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/EnrichmentResponseInput",
         "type": "object",
         "properties": {
           "phoneticApproximation": {
@@ -193,8 +183,6 @@
         }
       },
       "FeedbackBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/FeedbackBodyInput",
         "type": "object",
         "properties": {
           "category": {
@@ -217,8 +205,6 @@
         }
       },
       "UserSettingsInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UserSettingsInput",
         "type": "object",
         "properties": {
           "name": {
@@ -319,8 +305,6 @@
         ]
       },
       "UpdateUserSettingsBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateUserSettingsBodyInput",
         "type": "object",
         "properties": {
           "name": {
@@ -407,8 +391,6 @@
         }
       },
       "ErrorResponseInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ErrorResponseInput",
         "type": "object",
         "properties": {
           "error": {
@@ -423,8 +405,6 @@
         ]
       },
       "PositiveIntQueryInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/PositiveIntQueryInput",
         "type": "object",
         "properties": {
           "limit": {
@@ -445,8 +425,6 @@
         }
       },
       "TagInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/TagInput",
         "type": "object",
         "properties": {
           "id": {
@@ -484,8 +462,6 @@
         ]
       },
       "CreateTagBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/CreateTagBodyInput",
         "type": "object",
         "properties": {
           "name": {
@@ -508,8 +484,6 @@
         ]
       },
       "UpdateTagBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateTagBodyInput",
         "type": "object",
         "properties": {
           "name": {
@@ -529,8 +503,6 @@
         }
       },
       "AssignTagBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/AssignTagBodyInput",
         "type": "object",
         "properties": {
           "tagId": {
@@ -544,8 +516,6 @@
         ]
       },
       "ReviewScheduleInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewScheduleInput",
         "type": "object",
         "properties": {
           "easeFactor": {
@@ -615,8 +585,6 @@
         ]
       },
       "ConceptInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptInput",
         "type": "object",
         "properties": {
           "id": {
@@ -786,8 +754,6 @@
         ]
       },
       "ConceptWithScheduleInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptWithScheduleInput",
         "type": "object",
         "properties": {
           "id": {
@@ -961,8 +927,6 @@
         ]
       },
       "SaveConceptBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SaveConceptBodyInput",
         "type": "object",
         "properties": {
           "concept": {
@@ -1020,8 +984,6 @@
         ]
       },
       "ImportConceptItemInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ImportConceptItemInput",
         "type": "object",
         "properties": {
           "concept": {
@@ -1062,8 +1024,6 @@
         ]
       },
       "ImportConceptsBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ImportConceptsBodyInput",
         "type": "object",
         "properties": {
           "concepts": {
@@ -1079,8 +1039,6 @@
         ]
       },
       "BulkDeleteBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/BulkDeleteBodyInput",
         "type": "object",
         "properties": {
           "ids": {
@@ -1098,8 +1056,6 @@
         ]
       },
       "BulkUpdateBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/BulkUpdateBodyInput",
         "type": "object",
         "properties": {
           "ids": {
@@ -1136,8 +1092,6 @@
         ]
       },
       "ConceptWithTagsInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptWithTagsInput",
         "type": "object",
         "properties": {
           "id": {
@@ -1325,8 +1279,6 @@
         ]
       },
       "ConceptDetailInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptDetailInput",
         "type": "object",
         "properties": {
           "id": {
@@ -1514,8 +1466,6 @@
         ]
       },
       "UpdateConceptBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateConceptBodyInput",
         "type": "object",
         "properties": {
           "translation": {
@@ -1554,8 +1504,6 @@
         }
       },
       "ReviewRatingInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewRatingInput",
         "type": "string",
         "enum": [
           "again",
@@ -1565,8 +1513,6 @@
         ]
       },
       "ReviewResultBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewResultBodyInput",
         "type": "object",
         "properties": {
           "quality": {
@@ -1587,8 +1533,6 @@
         ]
       },
       "ReviewResultResponseInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewResultResponseInput",
         "type": "object",
         "properties": {
           "message": {
@@ -1626,8 +1570,6 @@
         ]
       },
       "ReviewHistoryEntryInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewHistoryEntryInput",
         "type": "object",
         "properties": {
           "date": {
@@ -1653,8 +1595,6 @@
         ]
       },
       "ReviewStatsInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewStatsInput",
         "type": "object",
         "properties": {
           "totalReviewed": {
@@ -1678,8 +1618,6 @@
         ]
       },
       "FlashcardQuestionInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/FlashcardQuestionInput",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -1733,8 +1671,6 @@
         ]
       },
       "MultipleChoiceQuestionInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/MultipleChoiceQuestionInput",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -1785,8 +1721,6 @@
         ]
       },
       "ContextualRecallQuestionInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ContextualRecallQuestionInput",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -1850,8 +1784,6 @@
         ]
       },
       "ReviewSessionBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewSessionBodyInput",
         "type": "object",
         "properties": {
           "mode": {
@@ -1894,8 +1826,6 @@
         ]
       },
       "ReviewSessionInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewSessionInput",
         "type": "object",
         "properties": {
           "id": {
@@ -1960,8 +1890,6 @@
         ]
       },
       "OverviewStatsInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/OverviewStatsInput",
         "type": "object",
         "properties": {
           "totalConcepts": {
@@ -2031,8 +1959,6 @@
         ]
       },
       "DailyActivityInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/DailyActivityInput",
         "type": "object",
         "properties": {
           "date": {
@@ -2062,8 +1988,6 @@
         ]
       },
       "SentenceBuilderGenerateBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderGenerateBodyInput",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -2077,8 +2001,6 @@
         ]
       },
       "SentenceBuilderChallengeInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderChallengeInput",
         "type": "object",
         "properties": {
           "id": {
@@ -2101,8 +2023,6 @@
         ]
       },
       "SentenceBuilderValidateBodyInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderValidateBodyInput",
         "type": "object",
         "properties": {
           "challengeId": {
@@ -2122,8 +2042,6 @@
         ]
       },
       "WordOfTheDayInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/WordOfTheDayInput",
         "type": "object",
         "properties": {
           "word": {
@@ -2173,8 +2091,6 @@
         ]
       },
       "RelatedSuggestionInput": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/RelatedSuggestionInput",
         "type": "object",
         "properties": {
           "word": {
@@ -2198,8 +2114,6 @@
         ]
       },
       "TranslationRequest": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/TranslationRequest",
         "type": "object",
         "properties": {
           "selection": {
@@ -2232,8 +2146,6 @@
         "additionalProperties": false
       },
       "RelatedWord": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/RelatedWord",
         "type": "object",
         "properties": {
           "word": {
@@ -2254,8 +2166,6 @@
         "additionalProperties": false
       },
       "TranslationResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/TranslationResponse",
         "type": "object",
         "properties": {
           "contextualTranslation": {
@@ -2308,8 +2218,6 @@
         "additionalProperties": false
       },
       "EnrichmentRequest": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/EnrichmentRequest",
         "type": "object",
         "properties": {
           "text": {
@@ -2345,8 +2253,6 @@
         "additionalProperties": false
       },
       "EnrichmentResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/EnrichmentResponse",
         "type": "object",
         "properties": {
           "phoneticApproximation": {
@@ -2381,8 +2287,6 @@
         "additionalProperties": false
       },
       "FeedbackBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/FeedbackBody",
         "type": "object",
         "properties": {
           "category": {
@@ -2406,8 +2310,6 @@
         "additionalProperties": false
       },
       "UserSettings": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UserSettings",
         "type": "object",
         "properties": {
           "name": {
@@ -2509,8 +2411,6 @@
         "additionalProperties": false
       },
       "UpdateUserSettingsBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateUserSettingsBody",
         "type": "object",
         "properties": {
           "name": {
@@ -2598,8 +2498,6 @@
         "additionalProperties": false
       },
       "ErrorResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ErrorResponse",
         "type": "object",
         "properties": {
           "error": {
@@ -2615,8 +2513,6 @@
         "additionalProperties": false
       },
       "PositiveIntQuery": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/PositiveIntQuery",
         "type": "object",
         "properties": {
           "limit": {
@@ -2638,8 +2534,6 @@
         "additionalProperties": false
       },
       "Tag": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/Tag",
         "type": "object",
         "properties": {
           "id": {
@@ -2682,8 +2576,6 @@
         "additionalProperties": false
       },
       "CreateTagBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/CreateTagBody",
         "type": "object",
         "properties": {
           "name": {
@@ -2707,8 +2599,6 @@
         "additionalProperties": false
       },
       "UpdateTagBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateTagBody",
         "type": "object",
         "properties": {
           "name": {
@@ -2729,8 +2619,6 @@
         "additionalProperties": false
       },
       "AssignTagBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/AssignTagBody",
         "type": "object",
         "properties": {
           "tagId": {
@@ -2745,8 +2633,6 @@
         "additionalProperties": false
       },
       "ReviewSchedule": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewSchedule",
         "type": "object",
         "properties": {
           "easeFactor": {
@@ -2825,8 +2711,6 @@
         "additionalProperties": false
       },
       "Concept": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/Concept",
         "type": "object",
         "properties": {
           "id": {
@@ -3005,8 +2889,6 @@
         "additionalProperties": false
       },
       "ConceptWithSchedule": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptWithSchedule",
         "type": "object",
         "properties": {
           "id": {
@@ -3189,8 +3071,6 @@
         "additionalProperties": false
       },
       "SaveConceptBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SaveConceptBody",
         "type": "object",
         "properties": {
           "concept": {
@@ -3249,8 +3129,6 @@
         "additionalProperties": false
       },
       "ImportConceptItem": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ImportConceptItem",
         "type": "object",
         "properties": {
           "concept": {
@@ -3292,8 +3170,6 @@
         "additionalProperties": false
       },
       "ImportConceptsBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ImportConceptsBody",
         "type": "object",
         "properties": {
           "concepts": {
@@ -3310,8 +3186,6 @@
         "additionalProperties": false
       },
       "BulkDeleteBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/BulkDeleteBody",
         "type": "object",
         "properties": {
           "ids": {
@@ -3330,8 +3204,6 @@
         "additionalProperties": false
       },
       "BulkUpdateBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/BulkUpdateBody",
         "type": "object",
         "properties": {
           "ids": {
@@ -3369,8 +3241,6 @@
         "additionalProperties": false
       },
       "ConceptWithTags": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptWithTags",
         "type": "object",
         "properties": {
           "id": {
@@ -3567,8 +3437,6 @@
         "additionalProperties": false
       },
       "ConceptDetail": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ConceptDetail",
         "type": "object",
         "properties": {
           "id": {
@@ -3765,8 +3633,6 @@
         "additionalProperties": false
       },
       "UpdateConceptBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/UpdateConceptBody",
         "type": "object",
         "properties": {
           "translation": {
@@ -3806,8 +3672,6 @@
         "additionalProperties": false
       },
       "ReviewRating": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewRating",
         "type": "string",
         "enum": [
           "again",
@@ -3817,8 +3681,6 @@
         ]
       },
       "ReviewResultBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewResultBody",
         "type": "object",
         "properties": {
           "quality": {
@@ -3840,8 +3702,6 @@
         "additionalProperties": false
       },
       "ReviewResultResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewResultResponse",
         "type": "object",
         "properties": {
           "message": {
@@ -3884,8 +3744,6 @@
         "additionalProperties": false
       },
       "ReviewHistoryEntry": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewHistoryEntry",
         "type": "object",
         "properties": {
           "date": {
@@ -3916,8 +3774,6 @@
         "additionalProperties": false
       },
       "ReviewStats": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewStats",
         "type": "object",
         "properties": {
           "totalReviewed": {
@@ -3942,8 +3798,6 @@
         "additionalProperties": false
       },
       "FlashcardQuestion": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/FlashcardQuestion",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -3998,8 +3852,6 @@
         "additionalProperties": false
       },
       "MultipleChoiceQuestion": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/MultipleChoiceQuestion",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -4051,8 +3903,6 @@
         "additionalProperties": false
       },
       "ContextualRecallQuestion": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ContextualRecallQuestion",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -4117,8 +3967,6 @@
         "additionalProperties": false
       },
       "ReviewSessionBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewSessionBody",
         "type": "object",
         "properties": {
           "mode": {
@@ -4162,8 +4010,6 @@
         "additionalProperties": false
       },
       "ReviewSession": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ReviewSession",
         "type": "object",
         "properties": {
           "id": {
@@ -4233,8 +4079,6 @@
         "additionalProperties": false
       },
       "OverviewStats": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/OverviewStats",
         "type": "object",
         "properties": {
           "totalConcepts": {
@@ -4305,8 +4149,6 @@
         "additionalProperties": false
       },
       "DailyActivity": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/DailyActivity",
         "type": "object",
         "properties": {
           "date": {
@@ -4337,8 +4179,6 @@
         "additionalProperties": false
       },
       "SentenceBuilderGenerateBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderGenerateBody",
         "type": "object",
         "properties": {
           "conceptId": {
@@ -4353,8 +4193,6 @@
         "additionalProperties": false
       },
       "SentenceBuilderChallenge": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderChallenge",
         "type": "object",
         "properties": {
           "id": {
@@ -4378,8 +4216,6 @@
         "additionalProperties": false
       },
       "SentenceBuilderValidateBody": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/SentenceBuilderValidateBody",
         "type": "object",
         "properties": {
           "challengeId": {
@@ -4400,8 +4236,6 @@
         "additionalProperties": false
       },
       "WordOfTheDay": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/WordOfTheDay",
         "type": "object",
         "properties": {
           "word": {
@@ -4452,8 +4286,6 @@
         "additionalProperties": false
       },
       "RelatedSuggestion": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/RelatedSuggestion",
         "type": "object",
         "properties": {
           "word": {

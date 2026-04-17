@@ -4,6 +4,36 @@ import swaggerUi from '@fastify/swagger-ui'
 import { jsonSchemaTransform, jsonSchemaTransformObject } from 'fastify-type-provider-zod'
 
 /**
+ * Wraps fastify-type-provider-zod's transformObject to strip `$id` and
+ * `$schema` from each emitted component schema.
+ *
+ * Why: Zod 4's JSON Schema output (via `.meta({ id: '...' })`) adds
+ * `$id: "#/components/schemas/<Name>"` and `$schema` to every schema. Under
+ * JSON Schema 2020-12 semantics, `$id` establishes a new base URI scope — and
+ * swagger-ui's ref resolver then tries to resolve `/components/schemas/X`
+ * relative to the schema *itself* instead of the root document, failing with
+ * "Invalid object key 'components' at position 0". Removing the meta fields
+ * keeps the `$ref` pointers but lets the resolver treat them as JSON Pointers
+ * rooted at the OpenAPI document.
+ */
+const stripSchemaIds: typeof jsonSchemaTransformObject = (input) => {
+  const result = jsonSchemaTransformObject(input) as {
+    components?: { schemas?: Record<string, Record<string, unknown>> }
+  }
+  const schemas = result.components?.schemas
+  if (schemas) {
+    for (const key of Object.keys(schemas)) {
+      const schema = schemas[key]
+      if (schema && typeof schema === 'object') {
+        delete schema.$id
+        delete schema.$schema
+      }
+    }
+  }
+  return result as ReturnType<typeof jsonSchemaTransformObject>
+}
+
+/**
  * Registers @fastify/swagger (spec emission) and @fastify/swagger-ui (docs UI).
  * In production, the UI hides the "Try it out" button by setting
  * `supportedSubmitMethods: []`, so visitors can read the spec but cannot fire
@@ -54,7 +84,7 @@ export async function registerSwagger(app: FastifyInstance): Promise<void> {
       ],
     },
     transform: jsonSchemaTransform,
-    transformObject: jsonSchemaTransformObject,
+    transformObject: stripSchemaIds,
   })
 
   await app.register(swaggerUi, {
