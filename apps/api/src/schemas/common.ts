@@ -20,3 +20,15 @@ export const PositiveIntQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().positive().optional(),
 }).meta({ id: 'PositiveIntQuery' })
+
+/**
+ * ISO datetime at the wire layer.
+ *
+ * Handlers may pass a native `Date` — Fastify's JSON.stringify serialiser
+ * converts it to an ISO string via Date.prototype.toJSON at send time. The
+ * schema accepts both so TypeScript handlers can return DB rows directly
+ * without manual `.toISOString()` calls. The OpenAPI spec collapses the
+ * union to a single `string, date-time` entry (both branches render the
+ * same format), so consumers see a clean contract.
+ */
+export const DateTimeSchema = z.union([z.iso.datetime(), z.date()])

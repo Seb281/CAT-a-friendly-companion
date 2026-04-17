@@ -14,6 +14,59 @@
       }
     },
     "schemas": {
+      "ErrorResponseInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ErrorResponseInput",
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "NumericIdParamInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/NumericIdParamInput",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "PositiveIntQueryInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/PositiveIntQueryInput",
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 500
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
       "ReviewScheduleInput": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "#/components/schemas/ReviewScheduleInput",
@@ -239,6 +292,15 @@
                 "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
               }
             ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            ]
           }
         },
         "required": [
@@ -249,9 +311,9 @@
           "sourceLanguage",
           "targetLanguage",
           "state",
-          "createdAt"
-        ],
-        "additionalProperties": {}
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "ConceptWithScheduleInput": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -408,6 +470,15 @@
               }
             ]
           },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            ]
+          },
           "schedule": {
             "$ref": "#/components/schemas/ReviewScheduleInput"
           }
@@ -421,9 +492,9 @@
           "targetLanguage",
           "state",
           "createdAt",
+          "updatedAt",
           "schedule"
-        ],
-        "additionalProperties": {}
+        ]
       },
       "ReviewRatingInput": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -497,6 +568,33 @@
           "conceptState"
         ]
       },
+      "ReviewHistoryEntryInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ReviewHistoryEntryInput",
+        "type": "object",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            ]
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingInput"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "date",
+          "rating",
+          "correct"
+        ]
+      },
       "ReviewStatsInput": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "#/components/schemas/ReviewStatsInput",
@@ -520,6 +618,178 @@
           "totalReviewed",
           "dueNow",
           "avgAccuracy"
+        ]
+      },
+      "FlashcardQuestionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/FlashcardQuestionInput",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "commonUsage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewScheduleInput"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "schedule"
+        ]
+      },
+      "MultipleChoiceQuestionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/MultipleChoiceQuestionInput",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "correctAnswer": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewScheduleInput"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "sourceLanguage",
+          "targetLanguage",
+          "correctAnswer",
+          "options",
+          "schedule"
+        ]
+      },
+      "ContextualRecallQuestionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ContextualRecallQuestionInput",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "contextBefore": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contextAfter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewScheduleInput"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "schedule"
         ]
       },
       "ReviewSessionBodyInput": {
@@ -595,7 +865,9 @@
             "maximum": 9007199254740991
           },
           "accuracy": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
           },
           "durationSeconds": {
             "anyOf": [
@@ -630,9 +902,9 @@
           "completedAt"
         ]
       },
-      "ErrorResponseInput": {
+      "ErrorResponse": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ErrorResponseInput",
+        "$id": "#/components/schemas/ErrorResponse",
         "type": "object",
         "properties": {
           "error": {
@@ -644,11 +916,12 @@
         },
         "required": [
           "error"
-        ]
+        ],
+        "additionalProperties": false
       },
-      "NumericIdParamInput": {
+      "NumericIdParam": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/NumericIdParamInput",
+        "$id": "#/components/schemas/NumericIdParam",
         "type": "object",
         "properties": {
           "id": {
@@ -659,11 +932,12 @@
         },
         "required": [
           "id"
-        ]
+        ],
+        "additionalProperties": false
       },
-      "PositiveIntQueryInput": {
+      "PositiveIntQuery": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/PositiveIntQueryInput",
+        "$id": "#/components/schemas/PositiveIntQuery",
         "type": "object",
         "properties": {
           "limit": {
@@ -681,7 +955,8 @@
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ReviewSchedule": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -921,6 +1196,19 @@
                 "format": "date-time"
               }
             ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
           }
         },
         "required": [
@@ -931,9 +1219,10 @@
           "sourceLanguage",
           "targetLanguage",
           "state",
-          "createdAt"
+          "createdAt",
+          "updatedAt"
         ],
-        "additionalProperties": {}
+        "additionalProperties": false
       },
       "ConceptWithSchedule": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1094,6 +1383,19 @@
               }
             ]
           },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
           "schedule": {
             "$ref": "#/components/schemas/ReviewSchedule"
           }
@@ -1107,9 +1409,10 @@
           "targetLanguage",
           "state",
           "createdAt",
+          "updatedAt",
           "schedule"
         ],
-        "additionalProperties": {}
+        "additionalProperties": false
       },
       "ReviewRating": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1189,6 +1492,38 @@
         ],
         "additionalProperties": false
       },
+      "ReviewHistoryEntry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ReviewHistoryEntry",
+        "type": "object",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRating"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "date",
+          "rating",
+          "correct"
+        ],
+        "additionalProperties": false
+      },
       "ReviewStats": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "#/components/schemas/ReviewStats",
@@ -1212,6 +1547,181 @@
           "totalReviewed",
           "dueNow",
           "avgAccuracy"
+        ],
+        "additionalProperties": false
+      },
+      "FlashcardQuestion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/FlashcardQuestion",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "commonUsage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewSchedule"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "schedule"
+        ],
+        "additionalProperties": false
+      },
+      "MultipleChoiceQuestion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/MultipleChoiceQuestion",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "correctAnswer": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewSchedule"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "sourceLanguage",
+          "targetLanguage",
+          "correctAnswer",
+          "options",
+          "schedule"
+        ],
+        "additionalProperties": false
+      },
+      "ContextualRecallQuestion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ContextualRecallQuestion",
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "concept": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "contextBefore": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contextAfter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          },
+          "phoneticApproximation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ReviewSchedule"
+          }
+        },
+        "required": [
+          "conceptId",
+          "concept",
+          "translation",
+          "sourceLanguage",
+          "targetLanguage",
+          "schedule"
         ],
         "additionalProperties": false
       },
@@ -1289,7 +1799,9 @@
             "maximum": 9007199254740991
           },
           "accuracy": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
           },
           "durationSeconds": {
             "anyOf": [
@@ -1327,62 +1839,6 @@
           "durationSeconds",
           "completedAt"
         ],
-        "additionalProperties": false
-      },
-      "ErrorResponse": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/ErrorResponse",
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "error"
-        ],
-        "additionalProperties": false
-      },
-      "NumericIdParam": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/NumericIdParam",
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
-          }
-        },
-        "required": [
-          "id"
-        ],
-        "additionalProperties": false
-      },
-      "PositiveIntQuery": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "#/components/schemas/PositiveIntQuery",
-        "type": "object",
-        "properties": {
-          "limit": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 500
-          },
-          "offset": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 9007199254740991
-          },
-          "page": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
-          }
-        },
         "additionalProperties": false
       }
     }
@@ -1885,34 +2341,7 @@
                     "history": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "date": {
-                            "anyOf": [
-                              {
-                                "type": "string",
-                                "format": "date-time",
-                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
-                              },
-                              {
-                                "type": "string",
-                                "format": "date-time"
-                              }
-                            ]
-                          },
-                          "rating": {
-                            "$ref": "#/components/schemas/ReviewRating"
-                          },
-                          "correct": {
-                            "type": "boolean"
-                          }
-                        },
-                        "required": [
-                          "date",
-                          "rating",
-                          "correct"
-                        ],
-                        "additionalProperties": false
+                        "$ref": "#/components/schemas/ReviewHistoryEntry"
                       }
                     }
                   },
@@ -2042,173 +2471,13 @@
                       "items": {
                         "anyOf": [
                           {
-                            "type": "object",
-                            "properties": {
-                              "conceptId": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "concept": {
-                                "type": "string"
-                              },
-                              "translation": {
-                                "type": "string"
-                              },
-                              "sourceLanguage": {
-                                "type": "string"
-                              },
-                              "targetLanguage": {
-                                "type": "string"
-                              },
-                              "phoneticApproximation": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "commonUsage": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "schedule": {
-                                "$ref": "#/components/schemas/ReviewSchedule"
-                              }
-                            },
-                            "required": [
-                              "conceptId",
-                              "concept",
-                              "translation",
-                              "sourceLanguage",
-                              "targetLanguage",
-                              "schedule"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/FlashcardQuestion"
                           },
                           {
-                            "type": "object",
-                            "properties": {
-                              "conceptId": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "concept": {
-                                "type": "string"
-                              },
-                              "sourceLanguage": {
-                                "type": "string"
-                              },
-                              "targetLanguage": {
-                                "type": "string"
-                              },
-                              "phoneticApproximation": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "correctAnswer": {
-                                "type": "string"
-                              },
-                              "options": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "schedule": {
-                                "$ref": "#/components/schemas/ReviewSchedule"
-                              }
-                            },
-                            "required": [
-                              "conceptId",
-                              "concept",
-                              "sourceLanguage",
-                              "targetLanguage",
-                              "correctAnswer",
-                              "options",
-                              "schedule"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/MultipleChoiceQuestion"
                           },
                           {
-                            "type": "object",
-                            "properties": {
-                              "conceptId": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "concept": {
-                                "type": "string"
-                              },
-                              "translation": {
-                                "type": "string"
-                              },
-                              "contextBefore": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "contextAfter": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "sourceLanguage": {
-                                "type": "string"
-                              },
-                              "targetLanguage": {
-                                "type": "string"
-                              },
-                              "phoneticApproximation": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "schedule": {
-                                "$ref": "#/components/schemas/ReviewSchedule"
-                              }
-                            },
-                            "required": [
-                              "conceptId",
-                              "concept",
-                              "translation",
-                              "sourceLanguage",
-                              "targetLanguage",
-                              "schedule"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/ContextualRecallQuestion"
                           }
                         ]
                       }

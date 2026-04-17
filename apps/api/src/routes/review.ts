@@ -73,10 +73,10 @@ export async function reviewRoutes(
       const concepts = await reviewData.getDueConcepts(user.id, limit)
       const dueCount = await reviewData.getDueCount(user.id)
 
-      // Pass-through serialiser (JSON.stringify) converts Date fields to ISO strings at the wire
-      // layer; the TS types can't reconcile DB Date objects with the Zod schema's string | Date.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return reply.send({ concepts, dueCount } as any)
+      // DB schema types `state` as `text`, but the zod schema narrows it to an enum.
+      // Drizzle's row type is wider than the wire contract — the enum constraint is enforced
+      // on write, so at read time the cast is safe.
+      return reply.send({ concepts, dueCount } as z.input<typeof DueResponseSchema>)
     } catch (error) {
       request.log.error(error, 'Failed to retrieve due items')
       return reply.code(500).send({ error: 'Failed to retrieve due items' })

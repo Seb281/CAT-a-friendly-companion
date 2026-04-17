@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DateTimeSchema } from './common.ts'
 import { ConceptSchema, ConceptWithScheduleSchema, ReviewScheduleSchema, ConceptStateSchema } from './concept.ts'
 
 /** Quality rating label — matches QUALITY_MAP keys in utils/sm2.ts. */
@@ -34,18 +35,16 @@ export const DueResponseSchema = z.object({
 
 export const ReviewResultResponseSchema = z.object({
   message: z.string(),
-  // sm2() returns a Date; JSON.stringify serialises it to ISO string at the wire layer.
-  nextReviewAt: z.union([z.string().datetime(), z.date()]),
+  nextReviewAt: DateTimeSchema,
   interval: z.number().int(),
   conceptState: ConceptStateSchema,
 }).meta({ id: 'ReviewResultResponse' })
 
 export const ReviewHistoryEntrySchema = z.object({
-  // DB returns Date; JSON.stringify serialises to ISO string at the wire layer.
-  date: z.union([z.string().datetime(), z.date()]),
+  date: DateTimeSchema,
   rating: ReviewRatingSchema,
   correct: z.boolean(),
-})
+}).meta({ id: 'ReviewHistoryEntry' })
 
 export const ReviewHistoryResponseSchema = z.object({
   history: z.array(ReviewHistoryEntrySchema),
@@ -57,7 +56,14 @@ export const ReviewStatsResponseSchema = z.object({
   avgAccuracy: z.number(),
 }).meta({ id: 'ReviewStats' })
 
-/** /quiz/generate querystring. */
+/**
+ * /quiz/generate querystring.
+ *
+ * `type-answer` reuses the flashcard shape — the handler only branches on
+ * `multiple-choice` and `contextual-recall`; everything else falls through to
+ * a flashcard-style response (the web client computes correctness locally by
+ * comparing typed input to `translation`).
+ */
 export const QuizQuerySchema = z.object({
   type: z.enum(['flashcard', 'multiple-choice', 'type-answer', 'contextual-recall']).optional(),
   count: z.coerce.number().int().positive().max(100).optional(),
@@ -73,7 +79,7 @@ const FlashcardQuestionSchema = z.object({
   phoneticApproximation: z.string().nullable().optional(),
   commonUsage: z.string().nullable().optional(),
   schedule: ReviewScheduleSchema,
-})
+}).meta({ id: 'FlashcardQuestion' })
 
 const MultipleChoiceQuestionSchema = z.object({
   conceptId: z.number().int(),
@@ -84,7 +90,7 @@ const MultipleChoiceQuestionSchema = z.object({
   correctAnswer: z.string(),
   options: z.array(z.string()),
   schedule: ReviewScheduleSchema,
-})
+}).meta({ id: 'MultipleChoiceQuestion' })
 
 const ContextualRecallQuestionSchema = z.object({
   conceptId: z.number().int(),
@@ -96,7 +102,7 @@ const ContextualRecallQuestionSchema = z.object({
   targetLanguage: z.string(),
   phoneticApproximation: z.string().nullable().optional(),
   schedule: ReviewScheduleSchema,
-})
+}).meta({ id: 'ContextualRecallQuestion' })
 
 export const QuizResponseSchema = z.object({
   questions: z.array(z.union([
@@ -124,10 +130,9 @@ export const ReviewSessionSchema = z.object({
   mode: z.string(),
   totalItems: z.number().int(),
   correctItems: z.number().int(),
-  accuracy: z.number(),
+  accuracy: z.number().min(0).max(100),
   durationSeconds: z.number().int().nullable(),
-  // DB column is completedAt (timestamp); JSON.stringify serialises Date to ISO string.
-  completedAt: z.union([z.string().datetime(), z.date()]),
+  completedAt: DateTimeSchema,
 }).meta({ id: 'ReviewSession' })
 
 export const SessionPostResponseSchema = z.object({
